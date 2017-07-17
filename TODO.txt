@@ -1,0 +1,19 @@
+
+This is TODO-list of the various things that should be changed/added in DeCoSTAR
+
+  - overflow when counting number of backtrack : sometimes on complex solutions the number of possible backtracks is so high that it overflows.
+    - option to deactivate backtrack count
+    - flag and abort overflowing NBBT
+  - add Adelme's code : 
+    - loss aware : taking into account some losses to offer a free adj gains
+    - gibbs-sampling-like optimization of linearity through adj scenrios sampling
+    - ??multi-threaded version of DeCoSTAR??
+
+  Things to add to the doc:
+   - explain that the binary exists and on which platform it has been compiled ( il faut faire make clean avant make all )
+   - explain the new options
+
+
+AdjTree.cpp l.1052 : spcifically test for abreak  because Node.h got report the root if its degree is one, causing node names to be wrongly attributed
+
+
