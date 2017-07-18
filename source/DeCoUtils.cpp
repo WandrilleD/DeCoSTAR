@@ -39,7 +39,7 @@ This file contains various functions used by DeCo
 Created the: 02-03-2016
 by: Wandrille Duchemin
 
-Last modified the: 11-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -1533,8 +1533,8 @@ bool computeArtDeCoMaps(vector< pair <string,string > > &adjacencies, vector< pa
 	speGeneIndex.clear();
 
     //3. Compute C0/C1 for case Ext/Ext with  stats for all species
-
-	cout << "speGeneAdjNb " << speGeneAdjNb.size() << endl;
+	if(SuperVerbose)
+		cout << "speGeneAdjNb " << speGeneAdjNb.size() << endl;
 
 	map < int, map <string , int > >::iterator it1;
 	for(it1=speGeneAdjNb.begin();it1!=speGeneAdjNb.end();it1++)
@@ -1710,6 +1710,8 @@ Takes:
  - bool SuperVerbose
  - double boltzmannTemp [default : 1] : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - double absencePenalty [default : -1] : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - double adjScoreLogBase [default : 10000] : base of the log that will be used to go from adjacency confidence score to parsimony costs
 
 */
@@ -1718,7 +1720,9 @@ void ComputeEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, 
 									map<int, map<string,int> > &speGeneAdjNb, map< int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb, 
 									double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,
 									double WDupCost, double WLossCost, double WHgtCost, 
-									bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty, double adjScoreLogBase )
+									bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty,
+									bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+									double adjScoreLogBase )
 {
 	cout << setprecision(2);
 	for(unsigned i = 0 ; i < ECFams->size(); i++)
@@ -1733,7 +1737,9 @@ void ComputeEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, 
 										Gcost,  Bcost ,  
 										boltzmann,  SubRecInAdj, 
 										WDupCost,  WLossCost, WHgtCost, 
-										Verbose, SuperVerbose, boltzmannTemp , absencePenalty, adjScoreLogBase );
+										Verbose, SuperVerbose, boltzmannTemp , absencePenalty, 
+										LossAware, FamiliesFreeAdjacencies,
+										adjScoreLogBase );
 
 		if(Verbose)
 			cout << "Matrix computed" << endl;
@@ -1763,6 +1769,8 @@ Takes:
  - bool SuperVerbose
  - double boltzmannTemp [default : 1] : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - double absencePenalty [default : -1] : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - double adjScoreLogBase [default : 10000] : base of the log that will be used to go from adjacency confidence score to parsimony costs
 
 Returns:
@@ -1776,13 +1784,15 @@ vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFami
 																			double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,
 																			double WDupCost, double WLossCost, double WHgtCost, 
 																			bool Verbose, bool SuperVerbose, double boltzmannTemp , 
-																			double absencePenalty, double adjScoreLogBase )
+																			double absencePenalty,
+																			bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+																			double adjScoreLogBase)
 {
 
 	ReconciledTree * Rtree1 =  GeneFamilyList->at(ECF->getGfamily1())->getRecTree();
 	ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
-
-	return ComputeOneEquivalenceClassFamily( ECF,  Rtree1, Rtree2, adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,  Gcost, Bcost , boltzmann, SubRecInAdj, WDupCost, WLossCost, WHgtCost, Verbose, SuperVerbose, boltzmannTemp , absencePenalty );
+	
+	return ComputeOneEquivalenceClassFamily( ECF,  Rtree1, Rtree2, adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,  Gcost, Bcost , boltzmann, SubRecInAdj, WDupCost, WLossCost, WHgtCost, Verbose, SuperVerbose, boltzmannTemp , absencePenalty , LossAware, FamiliesFreeAdjacencies);
 	
 }
 
@@ -1808,6 +1818,8 @@ Takes:
  - bool SuperVerbose
  - double boltzmannTemp [default : 1] : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - double absencePenalty [default : -1] : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - double adjScoreLogBase [default : 10000] : base of the log that will be used to go from adjacency confidence score to parsimony costs
 
 Returns:
@@ -1819,11 +1831,17 @@ vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFami
 													 map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 													 double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,
 													 double WDupCost, double WLossCost, double WHgtCost, 
-													 bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty, double adjScoreLogBase)
+													 bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty, 
+													 bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+													 double adjScoreLogBase)
 {
 	cout << setprecision(2);
 
-	vector < pair < pair<string, string> , double > > scoreAssociation = ECF->createAdjMatrix(adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, Gcost, Bcost,  Rtree1,  Rtree2, SuperVerbose , boltzmann , boltzmannTemp , absencePenalty, adjScoreLogBase);
+	vector < pair < pair<string, string> , double > > scoreAssociation = ECF->createAdjMatrix(adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, 
+																								Gcost, Bcost,  Rtree1,  Rtree2, SuperVerbose , boltzmann , 
+																								LossAware, FamiliesFreeAdjacencies, 
+																								boltzmannTemp , absencePenalty, adjScoreLogBase);
+
 	if(!SubRecInAdj)
 		ECF->computeAdjMatrix();
 	else //using weighted reconciliation event costs
@@ -1831,6 +1849,9 @@ vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFami
 
 	
 	cout << setprecision(5);
+
+	ECF -> setScoreA(scoreAssociation);
+
 	return scoreAssociation ;
 }
 
@@ -2034,20 +2055,25 @@ Takes:
  - bool SuperVerbose
  - bool galwaysGain : there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  - double gC1Advantage : probability to choose c1 over c0 IF (and only if) they have the same score
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - double boltzmannTemp [default : 1] : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - double absencePenalty [default : -1] : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
  - double adjScoreLogBase [default : 10000] : base of the log that will be used to go from adjacency confidence score to parsimony costs
 
 */
-void ComputeAndBacktrackEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, vector <GeneFamily *> * GeneFamilyList ,
+ void ComputeAndBacktrackEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, vector <GeneFamily *> * GeneFamilyList ,
 												map < string, map <string , double> > &adjacencyScores,
 												map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 												map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
-												double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,double WDupCost, double WLossCost, double WHgtCost, bool Verbose, bool SuperVerbose, bool galwaysGain, double gC1Advantage, double boltzmannTemp , double absencePenalty, double adjScoreLogBase )
+												double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,double WDupCost, double WLossCost, double WHgtCost, bool Verbose, bool SuperVerbose, bool galwaysGain, double gC1Advantage,
+												bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+												double boltzmannTemp , double absencePenalty, double adjScoreLogBase )
 {
-	ComputeEquivalenceClassFamilies( ECFams,  GeneFamilyList , adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, Gcost,  Bcost ,  boltzmann,  SubRecInAdj, WDupCost,  WLossCost,  WHgtCost,  Verbose,  SuperVerbose,  boltzmannTemp ,  absencePenalty, adjScoreLogBase );
+	ComputeEquivalenceClassFamilies( ECFams,  GeneFamilyList , adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, Gcost,  Bcost ,  boltzmann,  SubRecInAdj, WDupCost,  WLossCost,  WHgtCost,  Verbose,  SuperVerbose,  boltzmannTemp ,  absencePenalty, LossAware, FamiliesFreeAdjacencies, adjScoreLogBase );
 	backtrackInPlaceEquivalenceClassFamilies( ECFams, GeneFamilyList , boltzmann, Verbose, SuperVerbose, galwaysGain, gC1Advantage);
 }
+
 
 
 /*
@@ -3772,4 +3798,445 @@ void writeSpeciesCorrespondanceFile(string fileName, MySpeciesTree * speciesTree
 			ofs << speciesTree->getRPO( nodeList[i] ) << " " << speciesTree->getNodeName( nodeList[i] )<<endl;
 	}
 
+}
+
+
+
+/*
+Fills the AdjGraph object.
+Takes:
+	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph : map containing the adjacency graph.
+	- int sens1, int sens2 : two integer specifying the orientation of the genes.
+	- map <string, map <string, int> > & AdjIndexMap : map associating the string representation of both extremities of the adj to their index in the other maps
+    - vector < double > & AdjInScoreList : list of inputed scores (unrepresented extant adjs and ancestral ones have an input score of 0)
+    - vector < double > & AdjOutScoreList : frequency of observation of each adj in the output
+    - vector < int > AdjSpeList : vector specifying the species association of an adjacency
+*/
+void ReadAdjMaps(int actualIndex, map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+				map <string, map <string, int> > & AdjIndexMap,
+				vector < double > & AdjInScoreList,
+				vector < double > & AdjOutScoreList,
+				vector < int > & AdjSpeList
+				)
+{
+
+	for (map <string, map <string, int> >::iterator it=AdjIndexMap.begin(); it!=AdjIndexMap.end(); ++it)
+	{
+		string name1 = it->first;
+		for (map <string, int>::iterator it2= it->second.begin(); it2!=it->second.end(); ++it2)
+		{
+			string name2 = it2->first;
+			int adjIndex = it2->second;
+
+			AdjGraph[AdjSpeList[adjIndex]][name1].push_back(make_pair(name2, actualIndex));
+			AdjGraph[AdjSpeList[adjIndex]][name2].push_back(make_pair(name1, actualIndex));
+		}
+
+	}
+	
+}
+
+
+/*
+description: map <int ECF, pair < vector < pair <node of fam1, node of fam2>, bool hasBeenComputed > >
+
+Takes:
+	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph: A map containing the Adjacencies computed so far
+	-  map < int, ReconciledTree * > loadedRecTrees: map containing all the reconciled gene trees
+	- vector <GeneFamily *> * GeneFamilyList : a vector containing the gene families
+Returns:
+	- map < pair<int, int> ,pair < vector < pair <string, string> >, string > > : Contains a vector of the free adjacencies for each of the pair of families involved, and in which ECFams this adjacency is happening.
+*/
+void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+						vector <GeneFamily *> * GeneFamilyList,
+						map < int ,pair < vector < pair <string, string> >, bool > > & FreeAdjacencies)
+{
+	
+	//loadedRecTree is useless Adelme.
+	for(int it = 0; it !=  GeneFamilyList->size() ; ++it)
+	{
+		//cout <<"family " << it << endl;
+		ReconciledTree * MyRecTree;
+		MyRecTree = GeneFamilyList->at(it)->getRecTree();
+		vector<int> ids = MyRecTree->getNodesId();
+		for (unsigned int i = 0; i < ids.size(); i++)
+		{
+			string var;
+			
+			if( MyRecTree -> getNodeEvent(ids[i]) == 2)//Event 2 is for Loss.
+			{
+				//cout << "Father: " << MyRecTree -> getFatherId(ids[i]) << endl;
+				int father_id = MyRecTree -> getFatherId(ids[i]);
+				int father_spe = MyRecTree -> getNodeSpecies(father_id);
+				int loss_spe =  MyRecTree -> getNodeSpecies(ids[i]);
+				
+				var = boost::lexical_cast<std::string>(it) + "|" + boost::lexical_cast<std::string>(father_id);
+				
+				//cout << var << endl;
+				//cout << "Event: " << MyRecTree -> getNodeEvent(ids[i]) << endl;
+				
+				int nbNeighbors =  AdjGraph[father_spe][var].size();
+				
+				if(nbNeighbors >= 2)
+				{
+					
+					/*
+					if(nbNeighbors == 2){
+						countTwoNeighbors++;
+					}else{
+						countMoreNeighbors++;
+					}*/
+					
+					vector <string> NodeCandidates;
+					
+					for(unsigned j = 0; j < AdjGraph[father_spe][var].size(); j++)
+					{
+						
+						stringstream currNeighbor(AdjGraph[father_spe][var][j].first);
+						
+						string segment;
+						vector <string> seglist;
+						
+						while(getline(currNeighbor, segment, '|'))
+						{
+						   seglist.push_back(segment);
+						}
+						int currFam = atoi(seglist[0].c_str());
+						int currNode = atoi(seglist[1].c_str());
+						
+						seglist.clear();
+						
+						ReconciledTree * currRecTree = GeneFamilyList -> at(currFam) -> getRecTree();
+						
+						vector <int> currSons = currRecTree -> getSonsId(currNode);
+						int free_node;
+						bool FoundCandidate = false;//could change the default.
+						
+						if (currRecTree -> getNodeSpecies(currSons[0]) == loss_spe)
+						{
+							if(currRecTree -> getNodeEvent(currSons[0]) == 1 or currRecTree -> getNodeEvent(currSons[0]) == 0) // 1 is speciation, 0 is extant
+							{
+								free_node = currSons[0];
+								FoundCandidate = true;
+							}
+							else
+							{
+								if(currRecTree -> getNodeEvent(currSons[0]) == 2)
+								{	
+									//countLosses++;
+									
+									pair <int, int> candidateNode;
+									candidateNode = FindGroupLoss(father_id, it, loss_spe, father_spe, currNode,currFam, AdjGraph, GeneFamilyList);
+									
+									if(candidateNode.first != -1)
+									{
+										currFam = candidateNode.first;
+										currRecTree = GeneFamilyList -> at(currFam) -> getRecTree();
+										free_node = candidateNode.second;
+										FoundCandidate = true;
+										//cout << "Found a candidate not directly neighbor to the loss"<<endl;
+									}
+								}
+							}
+						}
+						else
+						{
+							if (currRecTree -> getNodeSpecies(currSons[1]) == loss_spe)
+							{
+								if(currRecTree -> getNodeEvent(currSons[1]) == 1 or currRecTree -> getNodeEvent(currSons[1]) == 0) // 1 is speciation, 0 is extant
+								{
+									free_node = currSons[1];
+									FoundCandidate = true;
+								}
+								else
+								{
+									if(currRecTree -> getNodeEvent(currSons[1]) == 2)
+									{
+										//countLosses++;
+										pair < int, int> candidateNode;
+										
+										candidateNode = FindGroupLoss(father_id, it, loss_spe, father_spe, currNode,currFam, AdjGraph, GeneFamilyList);
+									
+										if(candidateNode.first != -1)
+										{
+											currFam = candidateNode.first;
+											currRecTree = GeneFamilyList -> at(currFam) -> getRecTree();
+											free_node = candidateNode.second;
+											FoundCandidate = true;
+											//cout << "Found a candidate not directly neighbor to the loss"<<endl;
+										}
+									}
+								}
+							}
+						}
+						
+						if(FoundCandidate)
+						{
+							string node_name;
+							if(currRecTree -> hasNodeName(free_node))
+							{
+								node_name = currRecTree -> getNodeName(free_node);
+							}
+							else
+							{
+								node_name = boost::lexical_cast<std::string>(currFam) + "|" + boost::lexical_cast<std::string>(free_node);
+							}
+							
+							NodeCandidates.push_back(node_name);
+						}
+					}
+					
+					vector < pair < string, string > > potentialFreeAdjacencies;
+					vector < int > potentialIndex;
+					
+					if(NodeCandidates.size() > 1)
+					{//else, we can't really give a free adjacency between one node, or zeno node.
+
+						for(unsigned j = 0; j < NodeCandidates.size(); j++)
+						{
+							
+							for(unsigned k = 0; k < AdjGraph[loss_spe][NodeCandidates[j]].size(); k++)
+							{
+								string currNeighborInLostSpe = AdjGraph[loss_spe][NodeCandidates[j]][k].first;
+								
+								if(find(NodeCandidates.begin(), NodeCandidates.end(), currNeighborInLostSpe) != NodeCandidates.end())
+								{
+									potentialFreeAdjacencies.push_back(make_pair(currNeighborInLostSpe, NodeCandidates[j]));
+									potentialIndex.push_back(AdjGraph[loss_spe][NodeCandidates[j]][k].second);
+								}
+								
+							}
+							
+						}
+						
+					}
+					
+					
+					if(potentialFreeAdjacencies.size() == 2){// then there is only one possibility, and one adjacency (seen twice as we look at both nodes)
+						
+						if(!doesItExist(FreeAdjacencies[potentialIndex[0]], potentialFreeAdjacencies[0]))
+						{
+							FreeAdjacencies[potentialIndex[0]].first.push_back(potentialFreeAdjacencies[0]);
+							FreeAdjacencies[potentialIndex[0]].second = false;
+						}// if it does not exist in the object, we add it, and we set the family to be computed.
+						//if it does exist, we do nothing.
+					}
+				}//else nothing, we can't know which pair of node will gain the free adjacency
+
+			}// else, nothing we are only correcting losses.
+			
+		}//for loop on nodes of a family.
+		
+		//cout << "___________________________" << endl;
+		
+	}//for loop on gene families
+	
+}
+
+
+/*This function copies the AdjTreeSamples to a temporary files, whose name is saved as an attribute of ECF.
+ * 
+* @arg EquivalenceClassFamily * ECF : pointer the the ECF whose trees we want to write
+* @arg NECFsample * sample : the N samples to write
+* @arg bool newick : if true the trees will be written in newick format. otherwise they will be in recPhyloXML
+* @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
+* @arg double GainCost (default = 3) : cost of a single gain event
+* @arg double BreakCost (default = 1) : cost of a single break event
+* @arg bool Init ( default : false) : if true, it will write some massage to signal the start of this ECF (XML only)
+* @arg bool Finish ( default : false) : if true, it will write some massage to signal the end of this ECF (XML only)
+* 
+*/
+void saveECFsampleToTmpFile(EquivalenceClassFamily * ECF, ECFsample * sample,
+							 int sampleIndex, bool newick,bool hideLosses,  
+							 double GainCost ,  double BreakCost , bool Init, bool Finish)
+{
+	string ECFfileName = ECF -> getTmpFile();
+	
+	if( Init == true)
+	{
+		ifstream File((ECFfileName).c_str());
+		if(File)
+		{//then file already exists. delete it.
+			int status = remove((ECFfileName).c_str());
+			if( status == -1)
+			{
+				cerr << "Failed to delete file: "<< ECFfileName << " .Exited with system error " << status << endl;
+			}
+		}
+	}
+	
+	AddECFsampleToFile(ECFfileName, ECF, sample,
+					   sampleIndex, newick, hideLosses,
+					   GainCost,
+					   BreakCost,
+					   Init, Finish);
+	
+}
+
+/*
+ * This function copies the content of the temporary files to the main output file for adjacency trees.
+Takes:
+* 	- string filename: The name of the main file.
+* 	- EquivalenceClassFamily * ECF: The equivalence class family's data to copy to the main main
+*/
+void copyTmpToFile(string filename, EquivalenceClassFamily * ECF)
+{
+	string line;
+	ifstream ECFfileName ((ECF -> getTmpFile()).c_str());
+	
+	ofstream AdjTreeFile((filename).c_str(),ofstream::out | ofstream::app );
+	
+	if(ECFfileName.is_open() && AdjTreeFile.is_open())
+	{
+		while ( getline (ECFfileName,line) )
+		{
+			AdjTreeFile << line << '\n';
+		}
+		ECFfileName.close();
+		AdjTreeFile.close();
+	}else{
+		cerr << "Temporary file: " << ECF -> getTmpFile() << " could not be opened." << endl;
+	}
+	
+	int status = remove((ECF -> getTmpFile()).c_str());//deleting the tmp file.
+	if(status == -1){
+		cout << "File removal of " << ECF -> getTmpFile() << " did not work. You might have to proceed manually."<<endl;
+		
+	}
+	
+}
+
+
+
+/*
+Takes:
+	- int OrNode: id of the node that was originally looked at.
+	- int OrFam: Fam of the node that was originally looked at.
+	- int spe_loss: species in which the loss has occured
+	- int father_spe: mother species of the one that has the loss(es).
+	- int Node: The node from which we shall do the search.
+	- int Fam: Gene family of the node.
+	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph: A map containing the Adjacencies computed so far
+	- map < int, ReconciledTree * > loadedRecTrees: map containing all the reconciled gene trees
+	- vector <GeneFamily *> * GeneFamilyList : a vector containing the gene families
+
+Returns:
+	- pair <int, int> node not immediately neighbors of the loss, but at the end of a group of genes that is lost, that can get a free adjacency
+							- the first int is Gfam Id
+							- the second int is node Id
+*/
+pair < int, int> FindGroupLoss(int OrNode, int OrFam, int spe_loss, int father_spe, int Node, int Fam,
+								map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+								vector <GeneFamily *> * GeneFamilyList)
+{
+	pair <int, int> result;
+	bool done = false;
+	
+	string currNodeName = boost::lexical_cast<std::string>(Fam) + "|" + boost::lexical_cast<std::string>(Node);
+	string oldNodeName = boost::lexical_cast<std::string>(OrFam) + "|" + boost::lexical_cast<std::string>(OrNode);
+	string newNodeName;
+	int newFam;
+	int newNode;
+	int iter = 0;//We'll give a max iteration in case it gets stuck in loops of gene losses.
+
+
+	while(done == false)
+	{
+		iter++;
+		if(iter > 5000)
+		{//to avoid looping around a group of lost genes for infinity
+			//Losing 5000 genes at once should be deadly for any organisms, but this is arbitrary.
+			done = true;
+			result.first = -1;
+			result.second = -1;
+			//cout << "loss loop." << endl;
+		}
+		if(AdjGraph[father_spe][currNodeName].size() == 2)
+		{//only two neighbors.
+			for(unsigned i = 0; i < AdjGraph[father_spe][currNodeName].size(); i++) // for each neighbor of the current node
+			{
+				if(AdjGraph[father_spe][currNodeName][i].first == oldNodeName) // this is where we come from
+				{
+					continue;// if it's the one we looked into previously, we're not interested.
+				}
+				else
+				{//new node to look into?
+					newNodeName = AdjGraph[father_spe][currNodeName][i].first;
+					string segment;
+					vector <string> seglist;
+					
+					stringstream nodename(newNodeName);
+					
+					while(getline(nodename, segment, '|'))
+					{
+					   seglist.push_back(segment);
+					}
+					newFam = atoi(seglist[0].c_str());
+					int newNode = atoi(seglist[1].c_str());
+					
+					ReconciledTree * newRecTree = GeneFamilyList->at(newFam)->getRecTree();
+					vector <int> newSons = newRecTree -> getSonsId(newNode);
+
+					if(newRecTree -> getNodeSpecies(newSons[0]) == spe_loss){
+
+						if(newRecTree -> getNodeEvent(newSons[0]) == 1 or newRecTree -> getNodeEvent(newSons[0]) == 0)//1 is spe, 0 is extant.
+						{//we found a candidate.
+							done = true;
+							result.first = newFam;
+							result.second = newSons[0];
+							break;//don't need to iter further.
+						}
+					}else{
+
+						if(newRecTree -> getNodeSpecies(newSons[1]) == spe_loss){
+							if(newRecTree -> getNodeEvent(newSons[1]) == 1 or newRecTree -> getNodeEvent(newSons[1]) == 0)//1 is spe, 0 is extant.
+							{//we found a candidate.
+								done = true;
+								result.first = newFam;
+								result.second = newSons[1];
+								break;//don't need to iter further.
+							}//else keep looking.
+						}
+					}
+					//up to this point, nothing has been found. Set variables for the next neighbor.
+					oldNodeName = currNodeName;
+					currNodeName = newNodeName;	
+					break;//no need to iter further, as there are only two neighbors.
+				}
+			}
+			
+		}
+		else
+		{//if there's more than 2 neighbors, we can't decide so there's no candidates.
+			done = true;
+			result.first = -1;
+			result.second = -1;
+		}
+		
+	}
+	
+	return result;
+}
+
+/*
+Takes:
+	- pair < vector < pair <string, string> >, bool > FamFreeAdjacencies: The family in which we want to add the adjacency
+	- pair < string, string > potentialFreeAdjacency: the adjacency we want to add.
+Returns:
+	- bool : if the adjacency is already present or not in the object.
+*/
+bool doesItExist( pair < vector < pair <string, string> >, bool > FamFreeAdjacencies,
+					pair < string, string > potentialFreeAdjacency) 
+{
+	for(unsigned i = 0; i < FamFreeAdjacencies.first.size() ; i++){
+		//cout << FamFreeAdjacencies.first[i].first << " and " << potentialFreeAdjacency.first <<endl;
+		//cout << FamFreeAdjacencies.first[i].second << " and " << potentialFreeAdjacency.second <<endl;
+		
+		if(FamFreeAdjacencies.first[i].first == potentialFreeAdjacency.first && FamFreeAdjacencies.first[i].second == potentialFreeAdjacency.second)
+			return true;
+		else if(FamFreeAdjacencies.first[i].first == potentialFreeAdjacency.second && FamFreeAdjacencies.first[i].second == potentialFreeAdjacency.first)
+			return true;
+	}
+	//if we didn't find a pair that matched
+	return false;
 }

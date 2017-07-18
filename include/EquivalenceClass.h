@@ -42,7 +42,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 10-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -100,12 +100,16 @@ protected:
 
 	pair <int, int> getHighestCompatibleNodeIdsStoppingReception(int NodeId1, int NodeId2, ReconciledTree * Rtree1, ReconciledTree * Rtree2, int Ancestor1, int Ancestor2);
 
+
 	void createAdjMatrixAux(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 										map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 										vector <double> &adjacencyScoreVec,
 										double Gcost, double Bcost, 
 										ReconciledTree * rtree1, ReconciledTree * rtree2,
-										bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase);
+										bool VERBOSE, bool boltzmann ,
+										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+										double temp , double absencePenalty, double adjScoreLogBase);
+
 
 
 public:
@@ -259,19 +263,22 @@ public:
 	void printMe(bool verbose);
 
 	
-
 	vector <double> createAdjMatrix(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb,
 							map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 							double Gcost, double Bcost, 
 							ReconciledTree * rtree1, ReconciledTree * rtree2,
-							bool VERBOSE, bool boltzmann , double temp , double absencePenalty);
+							bool VERBOSE, bool boltzmann ,
+							bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+							double temp , double absencePenalty);
 
 	vector <double> createAdjMatrix(map < string, map <string , double> > &adjacencyScores, 
 							map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 							map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 							double Gcost, double Bcost, 
 							ReconciledTree * rtree1, ReconciledTree * rtree2,
-							bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase); // ADseq version of the function
+							bool VERBOSE, bool boltzmann ,
+							bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+							double temp , double absencePenalty, double adjScoreLogBase); // ADseq version of the function
 
 	void computeAdjMatrix();
 	void computeAdjMatrix(double WDupCost, double WLossCost, double WHgtCost);
@@ -299,6 +306,9 @@ public:
 
 
 	int getNumberScoreWithAbsLog10Above(double threshold = 200); 
+
+	void setSetAdjMatrix(bool isSet){SetAdjMatrix = isSet;} // for loss aware
+
 };
 
 

@@ -42,7 +42,7 @@ This file contains a class for a matrix for adjacency history
 Created the: 30-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 10-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -52,6 +52,9 @@ by: Wandrille Duchemin
 
 
 #include <stdlib.h>
+
+#include <iostream>
+#include <fstream>
 
 #include "MyMatrix.h"
 #include "ReconciledTree.h"
@@ -75,7 +78,7 @@ vector< vector< boost::tuples::tuple<int,int,bool> > > DiffVectors(vector< vecto
 vector< vector< boost::tuples::tuple<int,int,bool> > > UnionVectors(vector< vector< boost::tuples::tuple<int,int,bool> > > V1,vector< vector< boost::tuples::tuple<int,int,bool> > > V2);
 vector< vector< boost::tuples::tuple<int,int,bool> > > combineVectors(vector< vector< boost::tuples::tuple<int,int,bool> > > V1,vector< vector< boost::tuples::tuple<int,int,bool> > > V2);
 
-
+vector< vector< boost::tuples::tuple<int,int,bool> > > AddUpVectors( vector< vector< boost::tuples::tuple<int,int,bool> > > V1,vector< vector< boost::tuples::tuple<int,int,bool> > > V2);  // LA modif
 
 class AdjMatrix
 {
@@ -209,6 +212,19 @@ protected:
 
 	bool decoLTalgo;
 
+	//LA modif
+	bool LossAware;
+	pair < vector < pair <string, string> >, bool > currFreeAdjacencies;
+
+	int Gfam1;
+	int Gfam2;
+
+	int Gsens1;
+	int Gsens2;
+	//end LA modif
+
+
+
 //// methods that will be used by the score algebra
 	double addition(double const& a, double const& b);
 	double multiplication(double const& a, double const& b);
@@ -225,11 +241,16 @@ protected:
 
 
 ///methods
+
+
 	void AdjMatrixAux(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb,
 							map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 							 vector <double> &adjacencyScoreVec, double Gcost, double Bcost, 
 							 ReconciledTree * rtree1, ReconciledTree * rtree2, vector< pair <int,int> > &adjacencies,
-							 bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase, int sens1 =0, int sens2 =0);
+							 int Gfamily1, int Gfamily2,																//LAmodif
+							 bool lossaware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,	//LAmodif
+							 bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase,
+							  int sens1 =0, int sens2 =0);
 
 
 	void BuildIdMaps();
@@ -422,15 +443,23 @@ public:
 				double Gcost, double Bcost,
 				ReconciledTree * rtree1, ReconciledTree * rtree2, 
 				vector< pair <string,string> > &adjacencies, 
-				bool VERBOSE, bool boltzmann = false, double temp = 1 , double absencePenalty = -1, double adjScoreLogBase = 10000, int sens1 = 0, int sens2 = 0);
-
+				int Gfamily1, int Gfamily2,																	//LA modif
+				bool lossaware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,	//LA modif
+				bool VERBOSE,
+				bool boltzmann = false,	double temp = 1 , double absencePenalty = -1, double adjScoreLogBase = 10000, int sens1 = 0, int sens2 = 0);
+				
 	AdjMatrix(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 				map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 				vector <double> &adjacencyScoreVec,
 				double Gcost, double Bcost, 
 				ReconciledTree * rtree1, ReconciledTree * rtree2, 
 				vector< pair <int,int> > &adjacencies, 
-				bool VERBOSE, bool boltzmann = false, double temp = 1  , double absencePenalty = -1, double adjScoreLogBase = 1000, int sens1 = 0, int sens2 = 0);
+				int Gfamily1, int Gfamily2,																	// LA modif
+				bool lossaware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,	// LA modif
+				bool VERBOSE,
+				bool boltzmann = false,double temp = 1  , double absencePenalty = -1, double adjScoreLogBase = 1000, int sens1 = 0, int sens2 = 0);
+
+
 
 
 	AdjMatrix(){}
@@ -456,7 +485,7 @@ public:
 		if(Rtree2 != NULL)
 			delete Rtree2;
 		*/
-		//the reconciled tree are referenced by the gene familiy too, so don't delete them <- false because we use cloneSubtree which create a new instance
+
 	}
 
 	void resetMatrix();
@@ -515,9 +544,9 @@ public:
 
 	int getNumberScoreWithAbsLog10Above(double threshold = 200); 
 
-	///////////////WMODIF
-
-
+	
+	void clear();							//LA modif
+	bool hasFreeAdj(int node1, int node2);	//LA modif
 
 };
 

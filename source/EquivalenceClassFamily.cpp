@@ -39,7 +39,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 10-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -565,6 +565,8 @@ Takes:
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - temp (double) (default: 1) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - absencePenalty (double) (default: -1): if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
  - double adjScoreLogBase [default : 10 000] : base of the log that will be used to go from adjacency confidence score to parsimony costs
@@ -577,12 +579,14 @@ vector < pair < pair<string, string> , double > > EquivalenceClassFamily::create
 										map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 										map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 										double Gcost, double Bcost, ReconciledTree * rtree1, ReconciledTree * rtree2, 
-										bool VERBOSE, bool boltzmann , double temp, double absencePenalty, double adjScoreLogBase )
+										bool VERBOSE, bool boltzmann ,
+										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+										double temp, double absencePenalty, double adjScoreLogBase )
 {
 	vector < pair < pair<string, string> , double > > ScoreAssociation;
 	for(unsigned i = 0; i < EclassList.size(); i++)
 	{
-		vector <double>  scores = EclassList[i].createAdjMatrix(adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, Gcost, Bcost, rtree1, rtree2, VERBOSE,  boltzmann ,  temp,  absencePenalty , adjScoreLogBase);//WMODIF
+		vector <double>  scores = EclassList[i].createAdjMatrix(adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, Gcost, Bcost, rtree1, rtree2, VERBOSE,  boltzmann ,LossAware, FamiliesFreeAdjacencies,  temp,  absencePenalty , adjScoreLogBase);
 
 		for(unsigned j = 0 ; j < scores.size(); j++)
 			ScoreAssociation.push_back( pair < pair<string, string> , double >( EclassList[i].getAdj(j), scores[j] ) );
@@ -706,6 +710,15 @@ void EquivalenceClassFamily::clone( const EquivalenceClassFamily * ECF)
 	sens1 = ECF->getSens1();
 	sens2 = ECF->getSens2();
 
+	scoreA = ECF -> getScoreA();
+	
+	AdjIndexMap = ECF -> getAdjIndexMap();
+	AdjInScoreList = ECF -> getAdjInScoreList();
+	AdjOutScoreList = ECF -> getAdjOutScoreList();
+	AdjSpeList = ECF -> getAdjSpeList();
+	
+	TmpFileName = ECF -> getTmpFile();
+
 	for(unsigned i = 0; i  < ECF->getNbEqClasses();i++)
 	{
 		EclassList.push_back(MultiRootEquivalenceClass(Gfam1,Gfam2));
@@ -731,5 +744,70 @@ vector <int> EquivalenceClassFamily::getNumberScoreWithAbsLog10Above(double thre
 		nbAbove.push_back( EclassList[i].getNumberScoreWithAbsLog10Above( threshold ) );
 	}
 	return nbAbove;
+}
+
+///////////////// MODIF: Adelme //////////////
+void EquivalenceClassFamily::setScoreA(vector < pair < pair<string, string> , double > > sAssociations)
+{
+	
+	scoreA = sAssociations;
+}
+
+vector < pair < pair<string, string> , double > > EquivalenceClassFamily::getScoreA() const
+{
+	return scoreA;
+}
+
+void EquivalenceClassFamily::setAdjIndexMap(map <string, map <string, int> > AdjIM)
+{
+	AdjIndexMap = AdjIM;
+}
+
+void EquivalenceClassFamily::setAdjInScoreList(vector < double > AdjISL)
+{
+	AdjInScoreList = AdjISL;
+}
+
+void EquivalenceClassFamily::setAdjOutScoreList(vector < double > AdjOSL)
+{
+	AdjOutScoreList = AdjOSL;
+}
+
+void EquivalenceClassFamily::setAdjSpeList(vector < int > AdjSL)
+{
+	AdjSpeList = AdjSL;
+}
+
+void EquivalenceClassFamily::setSetAdjMatrixFamily(bool isSet, int i){
+	EclassList[i].setSetAdjMatrix(isSet);
+}
+
+map <string, map <string, int> > EquivalenceClassFamily::getAdjIndexMap() const
+{
+	return AdjIndexMap;
+}
+vector < double > EquivalenceClassFamily::getAdjInScoreList() const 
+{
+	return AdjInScoreList;
+}
+
+vector < double > EquivalenceClassFamily::getAdjOutScoreList() const
+{
+	return AdjOutScoreList;
+}
+
+vector < int > EquivalenceClassFamily::getAdjSpeList() const 
+{
+	return AdjSpeList;
+}
+
+void EquivalenceClassFamily::setTmpFile(string OutDir, string OutPrefix, int index)
+{
+	TmpFileName = OutDir + OutPrefix + "." + boost::lexical_cast<std::string>(index) + ".tmp";
+}
+
+string EquivalenceClassFamily::getTmpFile() const
+{
+	return TmpFileName;
 }
 
