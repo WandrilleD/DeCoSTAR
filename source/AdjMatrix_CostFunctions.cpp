@@ -40,7 +40,7 @@ This file contains the functions relative to cost computation for the class AdjM
 Created the: 12-05-2016
 by: Wandrille Duchemin
 
-Last modified the: 9-12-2016
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -2211,6 +2211,97 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 	vector <int> SonsId1 = Rtree1.getSonsId(NodeId1);
 	vector <int> SonsId2 = Rtree2.getSonsId(NodeId2);
 
+	//variables to store potential node names
+	vector <string> SonsName1(2);//lenght will be 2 max
+	vector <string> SonsName2(2);//same
+
+	int corr_a1b1 = 0;
+	int corr_a2b1 = 0;
+	int corr_a1b2 = 0;
+	int corr_a2b2 = 0;
+	
+	if(LossAware)
+	{ //this is equivalent to the hasFreeAdj() function in AdjMatrix.cpp.  but with the exception that it detect which case should have the free gain!
+		
+		if(Rtree1.hasNodeName(SonsId1[0]))
+		{
+			SonsName1[0] = Rtree1.getNodeName(SonsId1[0]);
+		}
+		else
+		{
+			stringstream ss;
+			ss << Gfam1 << '|' << SonsId1[0];
+			SonsName1[0] = ss.str();
+			
+		}
+		
+		if(Rtree1.hasNodeName(SonsId1[1]))
+		{
+			SonsName1[1] = Rtree1.getNodeName(SonsId1[1]);
+		}
+		else
+		{
+			stringstream ss;
+			ss << Gfam1 << '|' << SonsId1[1];
+			SonsName1[1] = ss.str();
+			
+
+		}
+		
+		if(Rtree2.hasNodeName(SonsId2[0]))
+		{
+			SonsName2[0] = Rtree2.getNodeName(SonsId2[0]);
+		}
+		else
+		{
+			stringstream ss;
+			ss << Gfam2 << '|' << SonsId2[0];
+			SonsName2[0] = ss.str();
+		}
+		
+		if(Rtree2.hasNodeName(SonsId2[1]))
+		{
+			SonsName2[1] = Rtree2.getNodeName(SonsId2[1]);
+		}
+		else
+		{
+			stringstream ss;
+			ss << Gfam2 << '|' << SonsId2[1];
+			SonsName2[1] = ss.str();
+		}
+	
+		for(int i=0; i < currFreeAdjacencies.first.size(); i++)
+		{
+			//cout << currFreeAdjacencies.first[i].first << " , " << currFreeAdjacencies.first[i].second << endl;
+			if (SonsName1[0] == currFreeAdjacencies.first[i].first)
+			{	if (SonsName2[0] == currFreeAdjacencies.first[i].second)
+					corr_a1b1 = 1;
+				if (SonsName2[1] == currFreeAdjacencies.first[i].second)
+					corr_a1b2 = 1;
+			}
+			if ( SonsName1[1] == currFreeAdjacencies.first[i].first)
+			{
+				if (SonsName2[0] == currFreeAdjacencies.first[i].second)
+					corr_a2b1 = 1;
+				if (SonsName2[1] == currFreeAdjacencies.first[i].second)
+					corr_a2b2 = 1;
+			}
+			if (SonsName2[0] == currFreeAdjacencies.first[i].first)
+			{
+				if (SonsName1[0] == currFreeAdjacencies.first[i].second)
+					corr_a1b1 = 1;
+				if (SonsName1[1] == currFreeAdjacencies.first[i].second)
+					corr_a2b1 = 1;
+			}
+			if (SonsName2[1] == currFreeAdjacencies.first[i].first)
+			{
+				if (SonsName1[0] == currFreeAdjacencies.first[i].second)
+					corr_a1b2 = 1;
+				if (SonsName1[1] == currFreeAdjacencies.first[i].second)
+					corr_a2b2 = 1;
+			}
+		}
+	}
 
 	//There is 16 possible cases representing all c1 and c0 combination of the sons of 1 an 2
 	vector <double> caseScore;
@@ -2223,10 +2314,16 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 			{
 				for(unsigned c1a2b2 = 0; c1a2b2 < 2; c1a2b2 ++)
 				{
+					
+					
+					int c1a1b1_corr = 0; //  corr_c1axbx indicates whether or not it should be corrected ; c1axbx_corr gives the corrected value!
+					int c1a1b2_corr = 0; //  corr_c1axbx indicates whether or not it should be corrected ; c1axbx_corr gives the corrected value!
+					int c1a2b1_corr = 0; //  corr_c1axbx indicates whether or not it should be corrected ; c1axbx_corr gives the corrected value!
+					int c1a2b2_corr = 0; //  corr_c1axbx indicates whether or not it should be corrected ; c1axbx_corr gives the corrected value!
+					
 					currentSolution = new AdjSolution();
 					currentSolution->coevent = iscoevent;
-
-
+									
 					//a1b2
 					currentSolution->components.push_back(AdjScore(true,SonsId1[0],SonsId2[1]));
 					if(!c1a1b2)
@@ -2235,8 +2332,12 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 						caseScore.push_back(getC0(SonsId1[0],SonsId2[1]));
 					}
 					else
+					{
 						caseScore.push_back(getC1(SonsId1[0],SonsId2[1]));
 
+						c1a1b2_corr = c1a1b2 - corr_a1b2;
+						
+					}
 					//a2b1
 					currentSolution->components.push_back(AdjScore(true,SonsId1[1],SonsId2[0]));
 					if(!c1a2b1)
@@ -2246,7 +2347,8 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 					}
 					else
 					{
-						caseScore.push_back(getC1(SonsId1[1],SonsId2[0]));
+						caseScore.push_back(getC1(SonsId1[1],SonsId2[0]));						
+						c1a2b1_corr = c1a2b1 - corr_a2b1;						
 					}
 
 					//a1b1
@@ -2259,6 +2361,7 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 					else
 					{
 						caseScore.push_back(getC1(SonsId1[0],SonsId2[0]));
+						c1a1b1_corr = c1a1b1 - corr_a1b1;
 					}
 
 					//a2b2
@@ -2271,16 +2374,29 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 					else
 					{
 						caseScore.push_back(getC1(SonsId1[1],SonsId2[1]));
+						c1a2b2_corr = c1a2b2 - corr_a2b2;
+						
 					}
 
 
-
 					//determining the number of gains and breaks
+	
 					int nbadj = c1a1b1 + c1a1b2 + c1a2b1 + c1a2b2;
+					
+					
+					if(verbose)
+						cout << "AdjMatrix::SolutionC0synchronousTwoChildren "<< c1a1b1 << " "<< c1a1b2 <<" "<< c1a2b1 <<" "<< c1a2b2<< " -> " << nbadj << endl;
+					
+					if(LossAware){
+
+						nbadj = c1a1b1_corr + c1a1b2_corr + c1a2b1_corr + c1a2b2_corr;//if it's different, correction has been applied.
+
+						if(verbose)
+							cout << "LossAware AdjMatrix::SolutionC0synchronousTwoChildren "<< c1a1b1_corr << " "<< c1a1b2_corr << " "<< c1a2b1_corr << " "<< c1a2b2_corr<< " -> "<< nbadj <<endl;
+					}
 					currentSolution->NbGain = nbadj;
 					currentSolution->NbBreak = 0;
-
-					//cout << "AdjMatrix::SolutionC0synchronousTwoChildren "<< c1a1b1 << " "<< c1a1b2 <<" "<< c1a2b1 <<" "<< c1a2b2<< " -> " << nbadj << endl;
+					
 					//for(unsigned i = 0 ; i < caseScore.size(); i++)
 					//	cout << caseScore[i] << " ";
 					//cout << endl;

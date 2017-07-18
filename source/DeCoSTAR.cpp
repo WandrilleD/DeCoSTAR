@@ -1,7 +1,7 @@
 /*
 Created by: Wandrille Duchemin
 
-Last modified the: 11-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 
@@ -53,7 +53,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 #include "DeCoUtils.h"
-
+#include <unistd.h>
 
 #include <sys/stat.h>
 #include <fstream>
@@ -80,7 +80,7 @@ map<string,string> gStringParams; // string, char, and path
 
 
 
-const int gParameterCount = 41;
+const int gParameterCount = 43;
 string const gParameters[gParameterCount][4] = {
 // files
  {"parameter.file", "path", "none", "a file with input parameters" },
@@ -110,6 +110,10 @@ string const gParameters[gParameterCount][4] = {
  {"AGain.cost","double","2","cost of an adjacency gain"},
  {"ABreak.cost","double","1","cost of an adjacency break"},
  {"C1.Advantage","double","0.5","between 0 and 1. Probability to choose C1 (presence of adjacency) over C0 (absence of adjacency) in case of a score tie at the root of an equivalence class"},
+
+//Loss Aware options
+ {"Loss.aware","bool","false","computer adjacency matrices giving a free gain to a list of specific adjacencies based on losses in their neighbors."},
+ {"Loss.iteration","int","2","number of iterations of DeCoSTAR if lossAware mode is on. Minimum is 2."},
 
 //Scaffolding options
  {"scaffolding.mode","bool","false","use scaffolding algorithm to improve extant genomes scaffolding/assembly"},
@@ -491,6 +495,14 @@ void readParameters(
         gDoubleParams["scaffolding.propagation.index"]= 1;
     }
 
+    if( gBoolParams.find("Loss.aware")->second )
+    {
+        if(gIntParams.find("Loss.iteration")->second <= 1)
+        {
+            cerr << "Loss.iteration must be above 1. Forcing at default value of 2."<<endl;
+            gIntParams["Loss.iteration"]= 2;
+        }
+    }
 
 }
 
@@ -996,237 +1008,374 @@ int main(int args, char ** argv)
         
         int overflowed = 0; // will contain the number of equivalence class (ie. adj matrix) that have a potential overflow
 
-
-        int actualIndex = ECFams->size() - 1;
-        while(ECFams->size()>0)
+        int nbIter =1;//if loss.aware = false, only 1 iteration is needed.
+        string TmpFolder; // for Loss.aware + write.adjacency.trees options combined.
+        
+        if(gBoolParams.find("Loss.aware")->second)
         {
 
-            EquivalenceClassFamily * ECF = &ECFams->at(actualIndex);
+            nbIter = gIntParams.find("Loss.iteration")->second;
 
+            if(VerboseLevel > 1)
+                cout << "Loss awareness with "<< nbIter << " iterations."<< endl;
             
-            int gfam1 = ECF->getGfamily1();
-            int gfam2 = ECF->getGfamily2();
-
-            //if(!DUMPANDLOAD)
-            //{
+            if(gBoolParams.find("write.adjacency.trees") -> second)
+            {// if both loss.aware and write.adj.trees options are on, RAM will die if we save everything in it so we use tmp files instead.
+                TmpFolder = gStringParams.find("output.dir")->second + "/tmp/";
+                int status = mkdir((TmpFolder).c_str(),0777);
                 
+                //cout << status <<endl;
+                if(status == -1)
+                {
+                    cerr << "ERROR while creating temporary folder " << TmpFolder << " error no : " << errno << endl;
+                    exit(1);
+                }
+                
+            }
+
+
+        }
+        
+        vector <int> countingIter(nbIter);// used to display the number of matrices computed at each iteration.
+        vector <double> countingTime(nbIter);
+        
+        
+        int totSample = gIntParams.find("nb.sample")->second ;
+        bool stochasticBT = ((gBoolParams.find("use.boltzmann")->second)||(totSample>1));
+
+
+        //data structures used for loss aware DeCoSTAR.
+        map <int , map < string, vector < pair<string, int > > > > AdjGraph;
+        map < int ,pair < vector < pair <string, string> >, bool > > FreeAdjacencies;
+        
+        //variables for timing CPU.
+        clock_t begin_iter;
+        clock_t end_iter;
+        double elapsed_secs_iter;
+        
+
+        for(int iter = 0; iter != nbIter; iter++)
+        {
+
+            begin_iter = clock();
+            
+            if(gBoolParams.find("Loss.aware")->second && VerboseLevel > 1)
+                cout << "this is iteration "<< iter +1 << " over " << nbIter<<endl;
+
+            int currCount = 0; //used to display the number of matrices computed at each iteration.
+
+
+            int actualIndex = ECFams->size() - 1;
+
+            while(actualIndex>-1)
+            {
+
+                EquivalenceClassFamily * ECF = &ECFams->at(actualIndex);
+            
+                int gfam1 = ECF->getGfamily1();
+                int gfam2 = ECF->getGfamily2();
+                
+                    
                 Rtree1 = GeneFamilyList->at(gfam1)->getRecTree();
                 Rtree2 = GeneFamilyList->at(gfam2)->getRecTree();
-            //}
-            //else
-            //{ // we load the reconciled gene trees 
-            //    
-            //    if( loadedRecTrees.find(gfam1) == loadedRecTrees.end() ) // tree is not already loaded
-            //    {
-            //        loadedRecTrees[gfam1] =  new ReconciledTree(ReconciledTreesFileNames[gfam1] , speciesTree, superverbose);
-            //
-            //        if(gBoolParams.find("bounded.TS")->second)
-            //            loadedRecTrees[gfam1]->computeBoundedTimeSlices(speciesTree);
-            //        else if(gBoolParams.find("dated.species.tree")->second)
-            //            loadedRecTrees[gfam1]->SubdivideTree();
-            //        else
-            //            loadedRecTrees[gfam1]->setToNonTimeSliced();
-            //
-            //    }
-            //
-            //    if( loadedRecTrees.find(gfam2) == loadedRecTrees.end() ) // tree is not already loaded
-            //    {
-            //        loadedRecTrees[gfam2] =  new ReconciledTree(ReconciledTreesFileNames[gfam2] , speciesTree, superverbose);
-            //
-            //        if(gBoolParams.find("bounded.TS")->second)
-            //            loadedRecTrees[gfam2]->computeBoundedTimeSlices(speciesTree);
-            //        else if(gBoolParams.find("dated.species.tree")->second)
-            //            loadedRecTrees[gfam2]->SubdivideTree();
-            //        else
-            //            loadedRecTrees[gfam2]->setToNonTimeSliced();
-            //    }
-            //    
-            //    Rtree1 = loadedRecTrees[gfam1];
-            //    Rtree2 = loadedRecTrees[gfam2];
-            //
-            //    while(loadedRecTrees.size() > gIntParams.find("dump.and.load.limit")->second) // we delete a loaded reconciliation to avoid having too much at hand
-            //    {
-            //        for(map<int, ReconciledTree *>::iterator it = loadedRecTrees.begin(); it != loadedRecTrees.end(); ++it)
-            //        {
-            //            if( (it->first != gfam2) && (it->first != gfam1) ) // found one that is not needed -> delete it
-            //            {
-            //                delete it->second;
-            //                loadedRecTrees.erase(it);
-            //                break;
-            //            }
-            //
-            //        }
-            //    }
-            //}
 
-//            if(verbose)
-//            {
-//                cout << "refining equivalence class " << actualIndex << endl; 
-//            }
-    
-            ECF->refine(Rtree1, Rtree2, gBoolParams.find("all.pair.equivalence.class")->second ,gBoolParams.find("with.transfer")->second , superverbose); 
-    
+                pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies;     
 
-
-            if(VerboseLevel > 1)
-                cout << "Adjacency matrix computation for the Equivalence class family" << actualIndex << endl;
-        
-            vector < pair < pair<string, string> , double > > scoreAssociations = ComputeOneEquivalenceClassFamily(ECF, Rtree1, Rtree2, 
-                                            adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
-                                            gDoubleParams.find("AGain.cost")->second,
-                                            gDoubleParams.find("ABreak.cost")->second,
-                                            gBoolParams.find("use.boltzmann")->second,
-                                            gBoolParams.find("substract.reco.to.adj")->second,
-                                            gDoubleParams.find("dupli.cost")->second * gDoubleParams.find("Reconciliation.weight")->second / gAdjWeight,
-                                            gDoubleParams.find("loss.cost")->second * gDoubleParams.find("Reconciliation.weight")->second / gAdjWeight,
-                                            gDoubleParams.find("HGT.cost")->second * gDoubleParams.find("Reconciliation.weight")->second / gAdjWeight,
-                                            verbose,superverbose,
-                                            gDoubleParams.find("boltzmann.temperature")->second,
-                                            gDoubleParams.find("absence.penalty")->second, gDoubleParams.find("adjacency.score.log.base")->second);
-
-
-            if(VerboseLevel > 1)
-                cout << "Matrix computed" << endl;
-
-            if(gBoolParams.find("use.boltzmann")->second)
-            { // checking if any score has its absolute log10 above 200 (so the score is either < 1e-200 or > 1e200) is order to sniff out potential overflows
-                double threshold = 200;
-                vector <int> nbAbove = ECF->getNumberScoreWithAbsLog10Above( threshold );
-                int total = 0;
-                for(unsigned i = 0 ; i < nbAbove.size();i++)
-                    total += nbAbove[i];
-                if(total > 0)
-                {
-                    cerr << total <<" scores with value above 1e"<<threshold << " or below 1e-"<<threshold<<" in the equivalence class family between "<<gfam1 <<" and "<<gfam2 ;
-                    cerr << " -> potential overflow. Be wary of your results and try again with a boltzmann.temperature closer to 1 in case of problem."<<endl;
+                if( iter == 0 )
+                { //else it's useless, because it has been done.
+                    ECF->refine(Rtree1, Rtree2, gBoolParams.find("all.pair.equivalence.class")->second ,gBoolParams.find("with.transfer")->second , superverbose); 
                 }
-            }
-
-
-            // data structure used if we want to write adjs
-            map <string, map <string, int> > AdjIndexMap;
-            vector < double > AdjInScoreList;
-            vector < double > AdjOutScoreList;
-            vector < int > AdjSpeList;
-            if(gBoolParams.find("write.adjacencies")->second) // filling the different map
-            {
-                for(unsigned adjIndex = 0 ; adjIndex < scoreAssociations.size() ; adjIndex++)
+                else if(gBoolParams.find("Loss.aware")->second)
                 {
-                    AdjInScoreList.push_back( scoreAssociations[adjIndex].second );
-                    AdjOutScoreList.push_back( 0 );
-                    AdjIndexMap[scoreAssociations[adjIndex].first.first][scoreAssociations[adjIndex].first.second] = adjIndex;
-
-                    int geneNodeId =  Rtree1->getIdWithName(scoreAssociations[adjIndex].first.first);
-                    if(geneNodeId == -1) // sanity check
-                    {
-                        cerr << "ERROR : failed to find name "<< scoreAssociations[adjIndex].first.first << " in gene family "<< gfam1<<endl;
-                    }
-                    AdjSpeList.push_back( Rtree1->getNodeSpecies(geneNodeId) );
-
-                    //int idx =  AdjIndexMap[scoreAssociations[adjIndex].first.first][scoreAssociations[adjIndex].first.second];
-                    //cout << scoreAssociations[adjIndex].first.first << "-" << scoreAssociations[adjIndex].first.second << idx << " " << AdjSpeList[idx] << " " << AdjInScoreList[idx] << " " << AdjOutScoreList[idx]<< endl;
+                    FamiliesFreeAdjacencies = FreeAdjacencies[actualIndex];
+                    //Getting the free adjacency vectors of interest for the pair of the current families
+                    FreeAdjacencies[actualIndex].second = true;//either it already is computed or it's going to be computed.
                 }
-            }
-
-
-            //if(gIntParams.find("nb.sample")->second > 1 )
-            //{ // backtracking several times
                 
-                int totSample = gIntParams.find("nb.sample")->second ;
-                bool stohasticBT = ((gBoolParams.find("use.boltzmann")->second)||(totSample>1));
-                for(unsigned sampleIndex = 1 ; sampleIndex <= totSample; sampleIndex++ )
+                bool CompMatrix = false; // whether or not this matrix have to be recomputed too
+
+                if( (iter == 0) || (iter > 0 && FamiliesFreeAdjacencies.first.size() > 0 && FamiliesFreeAdjacencies.second == false))
                 {
-                    AdjTreeSample = new ECFsample();// new
-                    backtrackOnetimeOneEquivalenceClassFamily(AdjTreeSample, ECF, GeneFamilyList , 
-                                                        stohasticBT,
-                                                        verbose, superverbose,
-                                                        gBoolParams.find("always.AGain")->second , gDoubleParams.find("C1.Advantage")->second, overflowed );
-                    if(VerboseLevel > 1)
-                        cout << sampleIndex << "/" << totSample << "\r";
-
-                    bool init = false;
-                    bool finish = false;
-
-                    if( sampleIndex == 1 )
-                        init = true;
-                    if(sampleIndex == totSample)
-                        finish = true;
-
-                    if(gBoolParams.find("write.adjacency.trees")->second)
-                    {
-                        AddECFsampleToFile(adjTreeFileName, ECF, AdjTreeSample,
-                                       sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second, 
-                                       gDoubleParams.find("AGain.cost")->second,
-                                       gDoubleParams.find("ABreak.cost")->second, 
-                                       init, finish);
-                    }
-
-                    if(gBoolParams.find("write.adjacencies")->second)
-                    {
-                        for(unsigned i = 0 ; i < AdjTreeSample->size() ; i++)
-                        {
-                            UpdateAdjMapsFromForest( AdjTreeSample->at(i), gIntParams.find("nb.sample")->second, 
-                                AdjIndexMap,
-                                AdjInScoreList,
-                                AdjOutScoreList,
-                                AdjSpeList,
-                                Rtree1,
-                                Rtree2
-                                );
-                        }
-                    }
-
-
-                    for(unsigned i = 0 ; i < AdjTreeSample->size() ; i++)
-                    {
-                        for(unsigned j = 0 ; j < AdjTreeSample->at(i)->size() ; j++)
-                            delete AdjTreeSample->at(i)->at(j);
-                        delete AdjTreeSample->at(i);
-                    }
-                    delete AdjTreeSample;
+                    CompMatrix = true;
                 }
 
-                if(VerboseLevel > 1)
-                    cout << "backtracked Equivalence class family " << actualIndex << " " << gIntParams.find("nb.sample")->second << " times." << endl;
+                vector < pair < pair<string, string> , double > > scoreAssociations;
+                
+                if( CompMatrix )
+                {
+                    if(VerboseLevel > 1)
+                        cout << "Adjacency matrix computation for the Equivalence class family " << actualIndex << endl;
+                    if(VerboseLevel > 2)
+                        cout << "GeneFam 1: " << gfam1 << " GeneFam 2: " << gfam2 << endl;
+                        
+                    scoreAssociations = ComputeOneEquivalenceClassFamily(ECF, Rtree1, Rtree2, 
+                                                    adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
+                                                    gDoubleParams.find("AGain.cost")->second,
+                                                    gDoubleParams.find("ABreak.cost")->second,
+                                                    gBoolParams.find("use.boltzmann")->second,
+                                                    gBoolParams.find("substract.reco.to.adj")->second,
+                                                    gDoubleParams.find("dupli.cost")->second * gDoubleParams.find("Reconciliation.weight")->second / gAdjWeight,
+                                                    gDoubleParams.find("loss.cost")->second * gDoubleParams.find("Reconciliation.weight")->second / gAdjWeight,
+                                                    gDoubleParams.find("HGT.cost")->second * gDoubleParams.find("Reconciliation.weight")->second / gAdjWeight,
+                                                    verbose,superverbose,
+                                                    gDoubleParams.find("boltzmann.temperature")->second,
+                                                    gDoubleParams.find("absence.penalty")->second,
+                                                    gBoolParams.find("Loss.aware")->second, FamiliesFreeAdjacencies,
+                                                    gDoubleParams.find("adjacency.score.log.base")->second) ;
 
+
+                    if(VerboseLevel > 1)
+                        cout << "Matrix computed" << endl;
+                    
+                    currCount++;
+                }
+                else
+                {
+                    //else there is no change from a previous run, and scoreAssociations has been computed and save previously.
+                    scoreAssociations = ECF -> getScoreA();
+                }
+                
+                if(gBoolParams.find("use.boltzmann")->second)
+                { // checking if any score has its absolute log10 above 200 (so the score is either < 1e-200 or > 1e200) is order to sniff out potential overflows
+                    double threshold = 200;
+                    vector <int> nbAbove = ECF->getNumberScoreWithAbsLog10Above( threshold );
+                    int total = 0;
+                    for(unsigned i = 0 ; i < nbAbove.size();i++)
+                        total += nbAbove[i];
+                    if(total > 0)
+                    {
+                        cerr << total <<" scores with value above 1e"<<threshold << " or below 1e-"<<threshold<<" in the equivalence class family between "<<gfam1 <<" and "<<gfam2 ;
+                        cerr << " -> potential overflow. Be wary of your results and try again with a boltzmann.temperature closer to 1 in case of problem."<<endl;
+                    }
+                }
+
+                    
+                // data structure used if we want to write adjs
+                map <string, map <string, int> > AdjIndexMap;
+                vector < double > AdjInScoreList;
+                vector < double > AdjOutScoreList;
+                vector < int > AdjSpeList;
                 if(gBoolParams.find("write.adjacencies")->second)
                 {
-                    AddAdjMapsToFile(adjFileName, ECF->getSens1(), ECF->getSens2(),
+                    if(CompMatrix == true) // filling the different map
+                    {
+                        for(unsigned adjIndex = 0 ; adjIndex < scoreAssociations.size() ; adjIndex++)
+                        {
+                            AdjInScoreList.push_back( scoreAssociations[adjIndex].second );
+                            AdjOutScoreList.push_back( 0 );
+                            AdjIndexMap[scoreAssociations[adjIndex].first.first][scoreAssociations[adjIndex].first.second] = adjIndex;
+
+                            int geneNodeId =  Rtree1->getIdWithName(scoreAssociations[adjIndex].first.first);
+                            if(geneNodeId == -1) // sanity check
+                            {
+                                cerr << "ERROR : failed to find name "<< scoreAssociations[adjIndex].first.first << " in gene family "<< gfam1<<endl;
+                            }
+                            AdjSpeList.push_back( Rtree1->getNodeSpecies(geneNodeId) );
+
+                            //int idx =  AdjIndexMap[scoreAssociations[adjIndex].first.first][scoreAssociations[adjIndex].first.second];
+                            //cout << scoreAssociations[adjIndex].first.first << "-" << scoreAssociations[adjIndex].first.second << idx << " " << AdjSpeList[idx] << " " << AdjInScoreList[idx] << " " << AdjOutScoreList[idx]<< endl;
+                        }
+                    }
+                    else
+                    { // this was not recomputed, just use the results that were stored in the ECF
+                        AdjIndexMap = ECF -> getAdjIndexMap();
+                        AdjInScoreList = ECF -> getAdjInScoreList();
+                        AdjOutScoreList = ECF -> getAdjOutScoreList();
+                        AdjSpeList = ECF -> getAdjSpeList();        
+                    }
+                }
+
+
+
+                if( CompMatrix == true)
+                { // if the matrix was computed here.
+                    for(unsigned sampleIndex = 1 ; sampleIndex <= totSample; sampleIndex++ ) // for each sample to do
+                    {
+                        
+                        AdjTreeSample = new ECFsample();// new
+                    
+                        backtrackOnetimeOneEquivalenceClassFamily(AdjTreeSample, ECF, GeneFamilyList , 
+                                                            stochasticBT,
+                                                            verbose, superverbose,
+                                                            gBoolParams.find("always.AGain")->second , gDoubleParams.find("C1.Advantage")->second, overflowed );
+                        
+                                                
+                        if(VerboseLevel > 1)
+                            cout << sampleIndex << "/" << totSample << "\r";
+                        
+                        bool init = false;
+                        bool finish = false;
+
+                        if( sampleIndex == 1 )
+                            init = true;
+
+                        if(sampleIndex == totSample)
+                            finish = true;
+                        
+                        if(gBoolParams.find("write.adjacency.trees")->second)
+                        {
+                            
+                            if(iter == (nbIter - 1))// if it's the last iteration and matrice has been computed.
+                            {
+                                AddECFsampleToFile(adjTreeFileName, ECF, AdjTreeSample,
+                                               sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second, 
+                                               gDoubleParams.find("AGain.cost")->second,
+                                               gDoubleParams.find("ABreak.cost")->second, 
+                                               init, finish);
+                                if(gBoolParams.find("Loss.aware") ->second && finish == true)// if loss.aware option is on, tmp file that was previously filled has to be deleted.
+                                {
+                                    int status = remove((ECF -> getTmpFile()).c_str());//deleting the tmp file.
+                                    if(status == -1)
+                                    {
+                                        cerr << "File removal of " << ECF -> getTmpFile() << " did not work. You might have to proceed manually."<<endl;
+                                    }
+                                }
+                            }
+                            else // this is not the last iteration -> we save the sample to a temporary file
+                            {
+                                // not the last iteration. save AdjTree to tmp file.
+                                if(init == true) // first sample -> setting the file
+                                    ECF -> setTmpFile(TmpFolder, gStringParams.find("output.prefix")->second, actualIndex);
+                                
+                                saveECFsampleToTmpFile(ECF, AdjTreeSample,
+                                            sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second, 
+                                            gDoubleParams.find("AGain.cost")->second,
+                                            gDoubleParams.find("ABreak.cost")->second, 
+                                            init, finish);
+                                
+                            }                               
+                            //saving to file, and giving filename to ECF so it knows what to look for.
+
+                        }
+
+                        if(gBoolParams.find("write.adjacencies")->second)
+                        {
+                            for(unsigned i = 0 ; i < AdjTreeSample->size() ; i++)
+                            {
+                                UpdateAdjMapsFromForest( AdjTreeSample->at(i), gIntParams.find("nb.sample")->second, 
                                     AdjIndexMap,
                                     AdjInScoreList,
                                     AdjOutScoreList,
-                                    AdjSpeList);
+                                    AdjSpeList,
+                                    Rtree1,
+                                    Rtree2
+                                    );
+                            }
+                        }
+                        
+
+                        for(unsigned i = 0 ; i < AdjTreeSample->size() ; i++)
+                        {
+                            for(unsigned j = 0 ; j < AdjTreeSample->at(i)->size() ; j++)
+                                delete AdjTreeSample->at(i)->at(j);
+                            delete AdjTreeSample->at(i);
+                        }
+                        delete AdjTreeSample;
+                        
+                    }
+                    if(iter != nbIter - 1)
+                    {// saving the different maps used for writing adjacencies.
+                        ECF -> setAdjIndexMap(AdjIndexMap);
+                        ECF -> setAdjInScoreList(AdjInScoreList);
+                        ECF -> setAdjOutScoreList(AdjOutScoreList);
+                        ECF -> setAdjSpeList(AdjSpeList);
+                    }//else it's useless, we won't need it.
+                }
+                else if(gBoolParams.find("write.adjacency.trees")->second && iter == nbIter -1)
+                {
+                    copyTmpToFile(adjTreeFileName, ECF);
+                    //if last iteration, copy AdjTree from tmp file to main file.
                 }
 
-            //}
-            //else
-            //{
-            //    backtrackInPlaceOneEquivalenceClassFamily(ECF, Rtree1, Rtree2 , 
-            //                                            gBoolParams.find("use.boltzmann")->second, 
-            //                                            verbose, superverbose,
-            //                                            gBoolParams.find("always.AGain")->second , gDoubleParams.find("C1.Advantage")->second );
-            //    if(VerboseLevel > 1)
-            //        cout << "backtracked Equivalence class family " << actualIndex << endl;
-            //
-            //    //writing the adj forest for this ecf and its infered adjs
-            //    AddECFAForestToFile( adjTreeFileName, ECF, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second);
-            //
-            //    //vector <string> fileNameList = WriteECFamTrees( ECF, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second , adjFilePrefix);
-            //    //for(unsigned fileNameIndex = 0 ; fileNameIndex < fileNameList.size(); fileNameIndex++)
-            //    //    AddToFile(WrittenFileFileName, fileNameList[fileNameIndex] );
-            //
-            //    if(gBoolParams.find("write.adjacencies")->second)
-            //        WriteAdjacenciesOneECF( ECF, gPathPrefix , Rtree1, Rtree2 );
-            //}
 
-            ////to free some memory we delete the adjMatrix after backtracking
+                if(VerboseLevel > 1)
+                {
+                    if(CompMatrix == true)
+                        cout << "backtracked Equivalence class family " << actualIndex << " " << gIntParams.find("nb.sample")->second << " times." << endl;
+                    else
+                        cout << "Kept previouly backtracked adjacency trees results for Equivalence class family " << actualIndex << endl;
+                 }
+                
+
+                if( (iter != nbIter - 1) && (gBoolParams.find("Loss.aware")->second) )
+                {//If it's not the last iteration, we don't need to write the adjacencies but we need them anyway.
+                    //second check should be useless in current state,as there are more than one iteration only with loss.awareness in current version (June 2017). 
+                    ReadAdjMaps(actualIndex, AdjGraph,
+                                AdjIndexMap,
+                                AdjInScoreList,
+                                AdjOutScoreList,
+                                AdjSpeList); // fills the adjacency graph object
+                    //cout << "added adjacencies to AdjGraph"<<endl;
+                }
+                else
+                {//do this on the last iteration
+                    if(gBoolParams.find("write.adjacencies")->second)
+                    {
+                        AddAdjMapsToFile(adjFileName, ECF->getSens1(), ECF->getSens2(),
+                                        AdjIndexMap,
+                                        AdjInScoreList,
+                                        AdjOutScoreList,
+                                        AdjSpeList);
+                        //cout << "added adjacencies to file"<<endl;
+                    }
+                }
+
+                if(iter == (nbIter - 1))//only on last iteration
+                {
+                    ECFams->erase(ECFams->end());// erasing the last element (the one we just treated) (erasing the last element in a vector is much more time efficient than erasing the first one)
+                }
+                else
+                {//to free some memory we delete the adjMatrix after backtracking
+                    if(CompMatrix == true)
+                    { // there actually is an adj matrix to delete
+                        int NbEqClasses = ECF -> getNbEqClasses();
+
+                        for(unsigned i = 0; i < NbEqClasses ; i++)
+                        {
+                            delete ECF -> getEClass(i) -> getAmat();//erasing matrices
+
+                            ECF -> setSetAdjMatrixFamily(false, i);// informating the ECF that the matrices are unset
+                        }
+
+                    }//else nothing to delete.
+                }
+                
+                actualIndex--;
+            }
+
             
-            ECFams->erase(ECFams->end()); // erasing the last element (the one we just treated) (erasing the last element in a vector is much more time efficient than erasing the first one)
-            actualIndex--;
-
+            //Those are made to fill in the container for the free adjacencies
+            if(gBoolParams.find("Loss.aware")->second)
+            {
+                if(iter != (nbIter - 1))//need to do that on all but the last iteration
+                {
+                    if(verbose > 1)
+                        cout << "establishing free adj list"<<endl;
+                        
+                    MakeFreeAdjacencies(AdjGraph, GeneFamilyList, FreeAdjacencies);
+                    
+                    if(verbose > 1)
+                        cout << "Free Adjacencies list established. Rerunning DeCoSTAR."<< endl;
+                    AdjGraph.clear(); // reinitialize the adjacency graph.
+                }//else it's useless because this is the last run.
+            }
             
+            //some variables for CPU timing.
+            end_iter = clock();
+            elapsed_secs_iter = double(end_iter - begin_iter) / CLOCKS_PER_SEC;
+            countingIter[iter] = currCount;
+            countingTime[iter] = elapsed_secs_iter;
 
+        }//end of for loop
+        if(gBoolParams.find("Loss.aware")-> second and VerboseLevel > 1)
+        {
+            for( unsigned i = 0; i < countingIter.size();i++){
+                cout << "Iteration number " << i << " computed " << countingIter[i] << " matrices in " << countingTime[i] << " seconds."<<endl;
+            }
         }
+        
+
+            
 
 
         if( (overflowed > 0) && (gBoolParams.find("use.boltzmann")->second) )
@@ -1241,6 +1390,17 @@ int main(int args, char ** argv)
         if(gBoolParams.find("write.adjacency.trees")->second)
         {
             FinishAdjacencyTreeFile(adjTreeFileName, gBoolParams.find("write.newick")->second);
+
+            if(gBoolParams.find("Loss.aware") -> second)
+            {//removing tmp folder and everything it contains.
+                int status = remove((TmpFolder).c_str());
+                    
+                if(status == -1)
+                {
+                    cerr << "tmp folder removal did not work. Exited with system error " << errno<<endl;
+                }
+                
+            }
         }
 
         for(map<int, ReconciledTree *>::iterator it = loadedRecTrees.begin(); it != loadedRecTrees.end(); ++it)

@@ -41,7 +41,7 @@ Created the: 30-11-2015
 by: Wandrille Duchemin
 
 
-Last modified the: 09-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -179,6 +179,21 @@ vector< vector< boost::tuples::tuple<int,int,bool> > > combineVectors(vector< ve
 	}
 	return Vres;
 }
+
+/* simply push back all the elements in V1 and V2 into a signle vector (no check for doubles) */
+vector< vector< boost::tuples::tuple<int,int,bool> > > AddUpVectors( vector< vector< boost::tuples::tuple<int,int,bool> > > V1,vector< vector< boost::tuples::tuple<int,int,bool> > > V2)
+{
+	vector< vector< boost::tuples::tuple<int,int,bool> > >	Vres;
+	for(unsigned i =0 ; i< V1.size() ; i++)
+	{
+		Vres.push_back(V1[i]);
+	}
+	for(unsigned i =0;i < V2.size(); i ++){
+		Vres.push_back(V2[i]);
+	}
+	return Vres;
+}
+
 
 /*
 recursively look at the first occurence of nodes that:
@@ -400,7 +415,7 @@ recursively look at the first occurence of nodes that:
  - are comparable if IncompOnly is false
 in each best solution of the node
 
-and fills all the matrixes needed in backtrack number computation
+and fills all the matrices needed in backtrack number computation
 
 Takes:
 	- int id1: id in the first tree
@@ -1281,23 +1296,39 @@ Takes:
  - rtree1 (ReconciledTree *): reconciled tree for the first dimension
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - adjacencies (vector< pair <int,int> >)
+ - int Gfamily1 : id of the first gene family
+ - int Gfamily2 : id of the second gene family
+ - bool lossaware : whether we use the loss aware mechanisms or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies ; indicates if the matrix should be recomputed and which adjs are free
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
  - temp (double) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - absencePenalty double) : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
  - double adjScoreLogBase : base of the log that will be used to go from adjacency confidence score to parsimony costs
+ - int sens1 : sens of the adjacencies ofthe first gene family
+ - int sens2 : sens of the adjacencies ofthe second gene family
+
 */
-//void AdjMatrix::AdjMatrixAux(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb,
-//							map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
-//							 vector <double> &adjacencyScoreVec, double Gcost, double Bcost, 
-//							 ReconciledTree * rtree1, ReconciledTree * rtree2, vector< pair <int,int> > &adjacencies,
-//							 bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase)
 void AdjMatrix::AdjMatrixAux(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb,
 							map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
-							 vector <double> &adjacencyScoreVec, double Gcost, double Bcost, 
-							 ReconciledTree * rtree1, ReconciledTree * rtree2, vector< pair <int,int> > &adjacencies,
-							 bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase, int sens1 , int sens2 )
+							vector <double> &adjacencyScoreVec, double Gcost, double Bcost, 
+							ReconciledTree * rtree1, ReconciledTree * rtree2, vector< pair <int,int> > &adjacencies,
+							int Gfamily1, int Gfamily2,
+							bool lossaware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+							bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase,
+							int sens1 , int sens2 )
 {
+
+
+	LossAware = lossaware;
+	currFreeAdjacencies = FamiliesFreeAdjacencies;
+
+	Gfam1 = Gfamily1;
+	Gfam2 = Gfamily2;
+	Gsens1 = sens1;
+	Gsens2 = sens2;
+
+
 
 	GainCost = Gcost;
 	BreakCost = Bcost;
@@ -1977,7 +2008,9 @@ Node * AdjMatrix::backtrackAuxC1(int id1, int id2, vector< AdjTree *> * Adjacenc
 				if(GainToDo > 0)
 				{
 					//there is a new gain/tree 
-					AdjTree * ATree = new AdjTree(true); //new adjacency tree with a gain at its root
+					bool PayNewGain = !hasFreeAdj(id1, id2) ; // you pay the new gain if the adjacency is not free // LA modif
+
+					AdjTree * ATree = new AdjTree(PayNewGain); //new adjacency tree with a gain at its root
 					AdjacencyTrees->push_back(ATree);
 					ATree->setRootNode(backtrackAuxC1(it->id1, it->id2, AdjacencyTrees, stochastic));
 
@@ -2078,7 +2111,11 @@ void AdjMatrix::backtrackAuxC0(int id1, int id2, vector< AdjTree *> * AdjacencyT
 	{
 		if(it->C1) // this one is C1 -> create a new AdjTree
 		{
-			AdjTree * ATree = new AdjTree(true); //new adjacency tree with a gain at its root
+			//there is a new gain/tree 
+			bool PayNewGain = !hasFreeAdj(id1, id2) ; // you pay the new gain if the adjacency is not free // LA modif
+
+			AdjTree * ATree = new AdjTree(PayNewGain); //new adjacency tree with a gain at its root
+
 			AdjacencyTrees->push_back(ATree);
 			ATree->setRootNode(backtrackAuxC1(it->id1, it->id2, AdjacencyTrees, stochastic));
 			
@@ -2183,21 +2220,30 @@ Takes:
  - rtree1 (ReconciledTree *): reconciled tree for the first dimension
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - adjacencies (vector< pair <string,string> >)
+ - int Gfamily1 : id of the first gene family
+ - int Gfamily2 : id of the second gene family
+ - bool lossaware : whether we use the loss aware mechanisms or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies ; indicates if the matrix should be recomputed and which adjs are free
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
- - temp (double) (default: 1) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
- - absencePenalty (double) (default: -1): if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization. 
- - double adjScoreLogBase [ default : 10000 ]: base of the log that will be used to go from adjacency confidence score to parsimony costs
+ - temp (double) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
+ - absencePenalty double) : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
+ - double adjScoreLogBase : base of the log that will be used to go from adjacency confidence score to parsimony costs
+ - int sens1 : sens of the adjacencies ofthe first gene family
+ - int sens2 : sens of the adjacencies ofthe second gene family
+
 */
 AdjMatrix::AdjMatrix(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 					map<int, map<string,pair< int, int > > > &speGeneExtremitiesAdjNb,
 					vector <double> &adjacencyScoreVec, 
 					double Gcost, double Bcost, 
 					ReconciledTree * rtree1, ReconciledTree * rtree2, 
-					vector< pair <string,string> > &adjacencies, bool VERBOSE, 
-					bool boltzmann , double temp , double absencePenalty , double adjScoreLogBase, int sens1 , int sens2 ) : Rtree1( *rtree1), Rtree2( *rtree2)//: Rtree1(rtree1->getRootNode(), rtree1->getTimeSliceStatus()), Rtree2(rtree2->getRootNode(), rtree2->getTimeSliceStatus())
+					vector< pair <string,string> > &adjacencies,
+					int Gfamily1, int Gfamily2,
+					bool lossaware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+					bool VERBOSE, bool boltzmann ,
+					double temp , double absencePenalty , double adjScoreLogBase, int sens1 , int sens2) : Rtree1( *rtree1), Rtree2( *rtree2)
 {
-
 	//cout << "AdjMatrix::AdjMatrix " << "speciesC0C1: " <<  speciesC0C1.size() << " speGeneAdjNb: " << speGeneAdjNb.size() << endl;
 
 	int nbadj = adjacencies.size();
@@ -2237,11 +2283,11 @@ AdjMatrix::AdjMatrix(map<int,vector<float> > &speciesC0C1, map<int, map<string,i
 		//cout << ps.first << "-"<< ps.second << " -> "<< pi.first << "-"<< pi.second << endl;
 	}
 
-
 	AdjMatrixAux(speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
 				adjacencyScoreVec, 
 				Gcost, Bcost, rtree1, rtree2, 
-				adjs, VERBOSE, boltzmann, temp, absencePenalty, adjScoreLogBase,  sens1 ,  sens2 );
+				adjs, Gfamily1, Gfamily2, lossaware, FamiliesFreeAdjacencies, VERBOSE, boltzmann, temp, absencePenalty, adjScoreLogBase, sens1 ,  sens2 );
+
 }
 
 
@@ -2258,25 +2304,35 @@ Takes:
  - rtree1 (ReconciledTree *): reconciled tree for the first dimension
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - adjacencies (vector< pair <int,int> >)
+ - int Gfamily1 : id of the first gene family
+ - int Gfamily2 : id of the second gene family
+ - bool lossaware : whether we use the loss aware mechanisms or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies ; indicates if the matrix should be recomputed and which adjs are free
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
- - temp (double) (default: 1) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
- - absencePenalty (double) (default: -1): if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
- - double adjScoreLogBase [ default : 10000 ]: base of the log that will be used to go from adjacency confidence score to parsimony costs
+ - temp (double) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
+ - absencePenalty double) : if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
+ - double adjScoreLogBase : base of the log that will be used to go from adjacency confidence score to parsimony costs
+ - int sens1 : sens of the adjacencies ofthe first gene family
+ - int sens2 : sens of the adjacencies ofthe second gene family
+
 */
 AdjMatrix::AdjMatrix(map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 					map<int, map<string,pair <int,int> > > &speGeneExtremitiesAdjNb,
 					vector <double> &adjacencyScoreVec, 
 					double Gcost, double Bcost, 
 					ReconciledTree * rtree1, ReconciledTree * rtree2, vector< pair <int,int> > &adjacencies, 
-					bool VERBOSE, bool boltzmann , double temp, double absencePenalty , 
-					double adjScoreLogBase, int sens1 , int sens2 )//: Rtree1(rtree1->getRootNode(), rtree1->getTimeSliceStatus() ), Rtree2(rtree2->getRootNode(), rtree2->getTimeSliceStatus() )
+					int Gfamily1, int Gfamily2,
+					bool lossaware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+					bool VERBOSE, bool boltzmann ,
+					double temp , double absencePenalty , double adjScoreLogBase, int sens1 , int sens2)
+
 {
 	//cout << Rtree1.getNumberOfNodes() << "<>"<< rtree1->getNumberOfNodes() <<  " - " << Rtree2.getNumberOfNodes() << "<>"<< rtree2->getNumberOfNodes()<< endl;
-
 	AdjMatrixAux(speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
 					adjacencyScoreVec, Gcost,Bcost, rtree1, rtree2, 
-					adjacencies, VERBOSE, boltzmann,temp, absencePenalty, adjScoreLogBase,  sens1 ,  sens2 );
+					adjacencies,Gfamily1, Gfamily2, lossaware, FamiliesFreeAdjacencies, VERBOSE, boltzmann,temp, absencePenalty, adjScoreLogBase, sens1 , sens2 );
+
 }
 
 
@@ -2722,82 +2778,16 @@ void AdjMatrix::backtrack( vector< AdjTree *> * AdjacencyTrees, bool stochastic,
 	if(rootList.size() == 0) // no root found
 		rootList.push_back(pair <int,int> ( Rtree1.getRootId() , Rtree2.getRootId() ) ); // putting root on top of the trees
 
+	bool GainAtTop = alwaysGainAtTop;
 
 	for(unsigned i = 0 ; i < rootList.size(); i++)
 	{
-		backtrackAux(AdjacencyTrees,stochastic,alwaysGainAtTop,c1proba, rootList[i].first, rootList[i].second );
+		if(hasFreeAdj(rootList[i].first,rootList[i].second) && LossAware){
+			GainAtTop = false;
+		}//if the adjacency at the root is part of the "free" adjacencies, and loss awareness is on, then there is no gain.
+		backtrackAux(AdjacencyTrees,stochastic,GainAtTop,c1proba, rootList[i].first, rootList[i].second );
 	}
-	/*
-	int Root1 = Rtree1.getRootId();
-	int Root2 = Rtree2.getRootId();
-
-	double c1 = getC1(Root1,Root2);
-	double c0 = getC0(Root1,Root2);
-
-	if(alwaysGainAtTop) // we have to add a gain to c1
-	{
-		if(useBoltzmann) // for Boltzmann DeCo
-		{
-			c1 *= getBoltzmannGainBreakCost(1,0); 
-		}
-		else
-		{
-			c1 += getGainCost();
-		}
-	}
-
-
-	//cout << "c1: " << c1 << ", c0: " << c0 << endl;
-
-	bool c1best;
-
-	if(c1 == worstScore)
-		c1best = false;
-	else if(c0 == worstScore)
-		c1best = true;
-	else if (c1 == c0) // both score are equal --> randomly determine which to choose
-	{
-		double r = ((double) rand()/ RAND_MAX); //random result
-
-		if(r <  c1proba)
-			c1best = true;
-		else
-			c1best = false;
-	}
-	else if(stochastic)//big score has a bigger proba to be chosen. Designed to be used with Boltzmann versio only.
-	{
-		double r = (c1 + c0) * ((double) rand()/ RAND_MAX); //random result
-
-		if(r < c1)
-			c1best = true;
-		else
-			c1best = false;
-	}
-	else // best score is chosen ( best means minimum in classical DeCo, and maximal in BoltzmannDeCo)
-	{
-		c1best = false;
-		if(c0 > c1)
-			c1best = true;
-
-		if(useBoltzmann)//reverse -> we want the greater score to win
-			c1best = !c1best;
-	}
-
-
-	if(c1best) // creation of a new AdjTree
-	{
-		AdjTree * ATree = new AdjTree(alwaysGainAtTop); //new adjacency tree with a gain at its root
-		AdjacencyTrees->push_back(ATree);
-		ATree->setRootNode(backtrackAuxC1(Root1, Root2, AdjacencyTrees, stochastic));
-		
-	}
-	else // C0 -> continue backtrack. if another c1 is encountered it will be part of another AdjTree anyway
-		backtrackAuxC0(Root1, Root2, AdjacencyTrees, stochastic);
-
-	for(vector< AdjTree *>::iterator it = AdjacencyTrees->begin(); it != AdjacencyTrees->end(); ++it)
-	{
-		(*it)->resetNodesId();
-	}*/
+	
 }
 
 
@@ -2835,8 +2825,7 @@ AdjMatrix* AdjMatrix::getClone()
 	vector <double> tmpAdjScore;
 
 	AdjMatrix * newAmat = new AdjMatrix(speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, tmpAdjScore, GainCost, BreakCost, Rtree1.cloneSubtree(Rtree1.getRootId()), Rtree2.cloneSubtree(Rtree2.getRootId()),
-										tmpAdjs, verbose, useBoltzmann, Temperature  , worstAbsenceScore);
-
+										tmpAdjs, Gfam1, Gfam2, LossAware, currFreeAdjacencies, verbose, useBoltzmann, Temperature  , worstAbsenceScore);
 
 
 	newAmat->setdecoLTalgo(decoLTalgo);
@@ -2935,4 +2924,149 @@ int AdjMatrix::getNumberScoreWithAbsLog10Above(double threshold )
 		}
 	}
 	return nbAbove;
+}
+
+
+
+
+
+
+/*
+This function Empties only the matrices.
+*/
+void AdjMatrix::clear(){
+	
+	matrixComputed = false;
+	
+	if(TreeToMatrixId1.size() >0)
+		TreeToMatrixId1.clear();
+	if(TreeToMatrixId2.size() >0)
+		TreeToMatrixId2.clear();
+
+	if(MatrixToTreeId1.size() > 0)
+		MatrixToTreeId1.clear();
+	if(MatrixToTreeId2.size() > 0)
+		MatrixToTreeId2.clear();
+	 
+	MyMatrix MatrixC0;
+	MyMatrix MatrixC1;
+	
+	MyMatrixAdjSolution SolutionMatrixC0;
+	MyMatrixAdjSolution SolutionMatrixC1;
+}
+
+/*
+W note : this looks like something that should be otimized ...
+
+what it does: 
+  1. translate the nodes sons names to text <-- ??
+  2. checks if they are in currFreeAdjacencies 
+  3. if they are returns True
+
+
+Takes:
+	- int node1 : id in gfam 1
+    - int node2 : id in gfam 2
+
+Returns:
+	(bool) : whether there is a free adjacency between the two genes or not.
+
+*/
+bool AdjMatrix::hasFreeAdj(int node1, int node2)
+{
+	if(LossAware && currFreeAdjacencies.first.size() > 0){// vector of free adjacencies not empty, else it's useless.
+		//then check if it needs to be free or not.
+
+		vector <int> SonsId1 = Rtree1.getSonsId(node1);
+		vector <int> SonsId2 = Rtree2.getSonsId(node2);
+		
+		if(SonsId1.size() == 2 && SonsId2.size() == 2){
+			//variables to store potential node names
+			vector <string> SonsName1(2);//lenght will be 2 max
+			vector <string> SonsName2(2);//same
+			
+			
+			if(Rtree1.hasNodeName(SonsId1[0]))
+			{
+				SonsName1[0] = Rtree1.getNodeName(SonsId1[0]);
+			}
+			else
+			{
+				stringstream ss;
+				ss << Gfam1 << '|' << SonsId1[0];
+				SonsName1[0] = ss.str();
+				
+			}
+			
+			if(Rtree1.hasNodeName(SonsId1[1]))
+			{
+				SonsName1[1] = Rtree1.getNodeName(SonsId1[1]);
+			}
+			else
+			{
+				stringstream ss;
+				ss << Gfam1 << '|' << SonsId1[1];
+				SonsName1[1] = ss.str();
+			}
+			
+			if(Rtree2.hasNodeName(SonsId2[0]))
+			{
+				SonsName2[0] = Rtree2.getNodeName(SonsId2[0]);
+			}
+			else
+			{
+				stringstream ss;
+				ss << Gfam2 << '|' << SonsId2[0];
+				SonsName2[0] = ss.str();
+			}
+			
+			if(Rtree2.hasNodeName(SonsId2[1]))
+			{
+				SonsName2[1] = Rtree2.getNodeName(SonsId2[1]);
+			}
+			else
+			{
+				stringstream ss;
+				ss << Gfam2 << '|' << SonsId2[1];
+				SonsName2[1] = ss.str();
+			}
+		
+			for(int i=0; i < currFreeAdjacencies.first.size(); i++)
+			{
+				//cout << currFreeAdjacencies.first[i].first << " , " << currFreeAdjacencies.first[i].second << endl;
+				if (SonsName1[0] == currFreeAdjacencies.first[i].first)
+				{	if (SonsName2[0] == currFreeAdjacencies.first[i].second)
+						return true;
+					if (SonsName2[1] == currFreeAdjacencies.first[i].second)
+						return true;
+				}
+				else if ( SonsName1[1] == currFreeAdjacencies.first[i].first)
+				{
+					if (SonsName2[0] == currFreeAdjacencies.first[i].second)
+						return true;
+					if (SonsName2[1] == currFreeAdjacencies.first[i].second)
+						return true;
+				}
+				else if (SonsName2[0] == currFreeAdjacencies.first[i].first)
+				{
+					if (SonsName1[0] == currFreeAdjacencies.first[i].second)
+						return true;
+					if (SonsName1[1] == currFreeAdjacencies.first[i].second)
+						return true;
+				}
+				else if (SonsName2[1] == currFreeAdjacencies.first[i].first)
+				{
+					if (SonsName1[0] == currFreeAdjacencies.first[i].second)
+						return true;
+					if (SonsName1[1] == currFreeAdjacencies.first[i].second)
+						return true;
+				}
+			}
+			
+		}
+		return false; //if we arrive to this point, there are no free adjacencies.
+	}
+
+	return false;//No loss aware, no free adjacencies.
+	
 }

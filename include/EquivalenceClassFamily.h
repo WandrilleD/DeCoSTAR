@@ -42,7 +42,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 10-01-2017
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -70,6 +70,18 @@ protected:
 
 	//vector <MultiRootEquivalenceClass * > EclassList; 
 	vector <MultiRootEquivalenceClass > EclassList; 
+
+
+	// LA modif
+	map <string, map <string, int> > AdjIndexMap;
+	vector < double > AdjInScoreList;
+	vector < double > AdjOutScoreList;
+	vector < int > AdjSpeList;
+	
+	vector < pair < pair<string, string> , double > > scoreA;
+	
+	string TmpFileName;
+	//end LA modif
 
 public:
 	EquivalenceClassFamily() : sens1(0), sens2(0)
@@ -138,7 +150,10 @@ public:
 										map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
 										map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 										double Gcost, double Bcost, ReconciledTree * rtree1, ReconciledTree * rtree2, 
-										bool VERBOSE, bool boltzmann , double temp = 1 , double absencePenalty = -1, double adjScoreLogBase =10000);
+										bool VERBOSE, bool boltzmann ,
+										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+										double temp = 1 , double absencePenalty = -1, double adjScoreLogBase =10000);
+
 	void computeAdjMatrix();
 	void computeAdjMatrix(double WDupCost, double WLossCost, double WHgtCost);
 
@@ -186,6 +201,30 @@ public:
 	};
 
 	vector <int> getNumberScoreWithAbsLog10Above(double threshold = 200); 
+
+
+	
+	// LA modif
+	vector < pair < pair<string, string> , double > > getScoreA() const;
+	void setScoreA(vector < pair < pair<string, string> , double > > sAssociations);
+	
+	void setSetAdjMatrixFamily(bool isSet, int i);
+	
+	void setAdjIndexMap(map <string, map <string, int> > AdjIM);
+	void setAdjInScoreList(vector < double > AdjISL);
+	void setAdjOutScoreList(vector < double > AdjOSL);
+	void setAdjSpeList(vector < int > AdjSL);
+
+	map <string, map <string, int> > getAdjIndexMap() const;
+	vector < double > getAdjInScoreList() const;
+	vector < double > getAdjOutScoreList() const;
+	vector < int > getAdjSpeList() const;
+	
+	void setTmpFile(string OutDir, string OutPrefix, int index);
+	
+	string getTmpFile() const;
+	// end LA modif
+
 
 };
 

@@ -38,7 +38,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 29-11-2016
+Last modified the: 17-07-2017
 by: Wandrille Duchemin
 
 */
@@ -1516,6 +1516,8 @@ Takes:
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - temp (double) (default: 1) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - absencePenalty (double) (default: -1): if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
  - double adjScoreLogBase : base of the log that will be used to go from adjacency confidence score to parsimony costs
@@ -1525,7 +1527,9 @@ void EquivalenceClass::createAdjMatrixAux(map<int,vector<float> > &speciesC0C1, 
 										vector <double> &adjacencyScoreVec,
 										double Gcost, double Bcost, 
 										ReconciledTree * rtree1, ReconciledTree * rtree2,
-										bool VERBOSE, bool boltzmann , double temp , double absencePenalty, double adjScoreLogBase)
+										bool VERBOSE, bool boltzmann ,
+										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+										double temp , double absencePenalty, double adjScoreLogBase)
 {
 	int a1 = getAncestor(0);
 	int a2 = getAncestor(1);
@@ -1542,8 +1546,13 @@ void EquivalenceClass::createAdjMatrixAux(map<int,vector<float> > &speciesC0C1, 
 
 	//cout << "nbadj " << getAdjs().size() << endl;
 	vector< pair <string,string> > adjs = getAdjs();
+
 	Amat = new AdjMatrix(speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
-							adjacencyScoreVec, Gcost, Bcost, sub1, sub2, adjs , VERBOSE, boltzmann, temp, absencePenalty, adjScoreLogBase, getSens1(), getSens2() );	
+							adjacencyScoreVec, 	Gcost, Bcost, sub1, sub2, adjs ,
+							Gfamily1, Gfamily2, LossAware, FamiliesFreeAdjacencies, 
+							VERBOSE, boltzmann, temp, absencePenalty, adjScoreLogBase, 
+							getSens1(), getSens2());	
+
 
 
 
@@ -1568,6 +1577,9 @@ Takes:
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
+ 
  - temp (double) (default: 1) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
 - absencePenalty (double) (default: -1): if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
 
@@ -1578,7 +1590,9 @@ vector <double> EquivalenceClass::createAdjMatrix(map<int,vector<float> > &speci
 										map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 										double Gcost, double Bcost, 
 										ReconciledTree * rtree1, ReconciledTree * rtree2, 
-										bool VERBOSE, bool boltzmann , double temp, double absencePenalty )
+										bool VERBOSE, bool boltzmann ,
+										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+										double temp, double absencePenalty )
 {
 
 	vector <double> adjacencyScoreVec;
@@ -1586,14 +1600,15 @@ vector <double> EquivalenceClass::createAdjMatrix(map<int,vector<float> > &speci
 	for(unsigned i = 0 ; i < getNbAdj() ; i++)
 		adjacencyScoreVec.push_back(1);
 
-
+	
 	createAdjMatrixAux( speciesC0C1,  speGeneAdjNb, speGeneExtremitiesAdjNb,  adjacencyScoreVec,
 							Gcost,  Bcost, 
 							rtree1, rtree2,
-							VERBOSE, boltzmann , temp , absencePenalty, 10000); //last arg is default adjScoreLogBase (won't be used anyway)
+							VERBOSE, boltzmann ,LossAware, FamiliesFreeAdjacencies, temp , absencePenalty, 10000); //last arg is default adjScoreLogBase (won't be used anyway)
 
 	return adjacencyScoreVec;
 }
+
 
 /*
 Creates the AdjMatrix of the Equivalence class.
@@ -1610,6 +1625,8 @@ Takes:
  - rtree2 (ReconciledTree *): reconciled tree for the second dimension
  - VERBOSE (bool)
  - boltzmann (bool) (default: false): wether to use boltzmann computation or not
+ - bool LossAware  : whether to use loss aware  stuff or not
+ - pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies : contains the list of free adjacencies!
  - temp (double) (default: 1) : Temperature used in boltzmann computation (a temperature of 0 is not possible)
  - absencePenalty (double) (default: -1): if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization.
  - double adjScoreLogBase : base of the log that will be used to go from adjacency confidence score to parsimony costs
@@ -1622,7 +1639,9 @@ vector <double> EquivalenceClass::createAdjMatrix(map < string, map <string , do
 										map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 										double Gcost, double Bcost, 
 										ReconciledTree * rtree1, ReconciledTree * rtree2, 
-										bool VERBOSE, bool boltzmann , double temp, double absencePenalty, double adjScoreLogBase )
+										bool VERBOSE, bool boltzmann ,
+										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
+										double temp, double absencePenalty, double adjScoreLogBase )
 {
 
 	vector <double> adjacencyScoreVec;
@@ -1676,13 +1695,14 @@ vector <double> EquivalenceClass::createAdjMatrix(map < string, map <string , do
 
 		adjacencyScoreVec.push_back(score);
 	}
-
 	createAdjMatrixAux( speciesC0C1,  speGeneAdjNb,
 							speGeneExtremitiesAdjNb,
-						    adjacencyScoreVec,
+							adjacencyScoreVec,
 							Gcost,  Bcost, 
 							rtree1, rtree2,
-							VERBOSE, boltzmann , temp , absencePenalty, adjScoreLogBase);
+							VERBOSE, boltzmann,
+							LossAware, FamiliesFreeAdjacencies,
+							temp , absencePenalty, adjScoreLogBase);
 
 	return adjacencyScoreVec;
 }
