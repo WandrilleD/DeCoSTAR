@@ -42,5 +42,9 @@ bin/DeCoSTAR parameter.file=tests/testADseq_boltzmann.param.txt
 echo "********************* ale input - longer test (a few seconds...) *********************"
 bin/DeCoSTAR parameter.file=tests/testDeCoLT_aleinput.param.txt
 
+echo "********************* Loss aware : free adjacency gains between the neighbours of a loss under certain conditions ************************"
+./bin/DeCoSTAR parameter.file=tests/LossAware.test.param.txt
+
+
 echo "tests finished. You may see the results in tests/testResults/ in various folders. You can compare with the content of expected/ ."
 echo "expect some difference between adjacencies histories because of the random nature of the process (co-optimal solutions, or boltzmann sampling)."
