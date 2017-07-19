@@ -1325,10 +1325,6 @@ void AdjMatrix::AdjMatrixAux(map<int,vector<float> > &speciesC0C1, map<int, map<
 
 	Gfam1 = Gfamily1;
 	Gfam2 = Gfamily2;
-	Gsens1 = sens1;
-	Gsens2 = sens2;
-
-
 
 	GainCost = Gcost;
 	BreakCost = Bcost;
