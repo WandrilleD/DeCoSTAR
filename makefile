@@ -12,8 +12,7 @@ BOOST_LIB=/usr/lib
 
 
 
-CPPFLAGS= -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE)
-#-std=c++11
+CPPFLAGS= -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE) -std=c++11
 LDFLAGS=-L$(BPP_LIB) -L$(BOOST_LIB)
 LIBS=-lm -lbpp-core -lbpp-seq -lbpp-phyl
 
