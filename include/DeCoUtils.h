@@ -41,7 +41,7 @@ This file contains various functions used by DeCo
 Created the: 02-03-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 20-07-2017
 by: Wandrille Duchemin
 
 */
@@ -62,6 +62,8 @@ by: Wandrille Duchemin
 #include "CladesAndTripartitions.h"
 #include "DTLMatrix.h"
 #include "DTLGraph.h"
+
+#include "XMLUtils.h"
 
 
 #include <map>
@@ -274,6 +276,8 @@ void ReadAdjMaps(int actualIndex, map <int , map < string, vector < pair<string,
 void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
                                     vector <GeneFamily *> * GeneFamilyList,
                                     map < int ,pair < vector < pair <string, string> >, bool > > & FreeAdjacencies);
+
+
 pair < int, int> FindGroupLoss(int OrNode, int OrFam, 
                                                 int spe_loss, int father_spe,
                                                 int Node, int Fam, 
@@ -286,7 +290,31 @@ void saveECFsampleToTmpFile(EquivalenceClassFamily * ECF, ECFsample * sample,
                                            
 void copyTmpToFile(string filename, EquivalenceClassFamily * ECF);
 
-bool doesItExist( pair < vector < pair <string, string> >, bool > FamFreeAdjacencies, pair < string, string > potentialFreeAdjacency);
+bool doesItExist( pair < vector < pair <string, string> >, bool > &FamFreeAdjacencies, pair < string, string > &potentialFreeAdjacency);
+
+
+//Wandrille modification of LossAware
+void FindPotentialFreeAdjacencyGroups(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+                              vector <GeneFamily *> * GeneFamilyList,
+                              vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups );
+
+
+
+void FillMapsOfAdjToTest( vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups, 
+                        map< int , map < int, int > > & GfamsToECF,
+                        map< int ,  map< int , map< int , vector < int > > > > & MapAdjsToTest
+                              );
+
+
+
+
+pair< int, int > StringIdToIntIds( string id );
+string IntIdsToStringId( int gfam , int node );
+
+
+bool LoadECFamTrees(EquivalenceClassFamily * ECF, bool gainAtRoot, bool VERBOSE, ReconciledTree * Rtree1 = NULL, ReconciledTree * Rtree2 = NULL);
+
+//vector <AdjTree * > * readAdjForest(string filename, int gfam1, int gfam2, bool gainAtRoot, bool VERBOSE);
 
 
 #endif

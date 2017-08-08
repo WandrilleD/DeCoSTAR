@@ -40,7 +40,7 @@ This file contains a class for an adjacency history as a tree
 Created the: 14-12-2015
 by: Wandrille Duchemin
 
-Last modified the: 13-07-2017
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -1020,7 +1020,15 @@ void AdjTree::refine(ReconciledTree * Rtree1, ReconciledTree * Rtree2, int sens1
 
 		if(getNodeEvent(it) == C) //this is a real extant leaf --> create a name
 		{
+
+			if( !hasNodeProperty(it,nodeid1 ) )
+			{ // no node ids... we have to find them in the reconciled trees
+				setupLeafNodeIdsFromRecTrees( it, Rtree1 , Rtree2);
+			}
+
 			pair <int,int> nids = getNodeNodeIds(it);
+
+
 			pair <string,string> names("","");
 
 			if(Rtree1->hasNodeName(nids.first))
@@ -1110,6 +1118,44 @@ void AdjTree::setNodeNamesAux(int sens1 , int sens2, Node * current)
 		setNodeNamesAux( sens1 , sens2, current->getSon(i) );
 
 }
+
+
+/*
+returns true if a node in the subtree rooted at n  represents an adjacency between the two speciafied node ids.
+
+Takes:
+	- Node * n , 
+	- int nid1 : an id in gfam 1
+	- int nid2 : an id in gfam 2
+
+Returns:
+	(bool) : true if a node in the subtree rooted at n  represents an adjacency between the two speciafied node ids.. false otherwise
+
+*/
+bool AdjTree::hasAdjAux( Node *n , int nid1, int nid2 )
+{
+
+	//some nodes (adjBreak nodes) do not have the nodeid property.
+	if(n->hasNodeProperty(nodeid1))
+	{
+		pair<int,int> nid = getNodeNodeIds(n);
+		if( (nid.first == nid1) && (nid.second == nid2)) // we've found the node bearing the adj of interest
+			return true;
+	}
+
+
+	// recursion of the children of n
+	unsigned nbCh = n->getNumberOfSons();
+	for(unsigned i = 0 ; i < nbCh ; i++)
+	{
+		if( hasAdjAux( n->getSon(i) , nid1 , nid2 ) )
+			return true; // end of recursion
+	}
+
+	//adj not found in the subtree -> return false
+	return false;
+}
+
 
 /*
 modify the names of each node to make them account for gene extremities
@@ -1295,4 +1341,45 @@ vector <int> AdjTree::getC1NodeIds(int gfamIndex)
 		geneIds.push_back(it->first);
 	}
 	return geneIds;
+}
+
+
+/*
+returns true if 1 node in the tree represents an adjacency between the two speciafied node ids.
+
+Takes:
+	- int nid1 : an id in gfam 1
+	- int nid2 : an id in gfam 2
+
+Returns:
+	(bool) : true if 1 node in the AdjTree represents an adjacency between the two speciafied node ids. false otherwise
+
+*/
+bool AdjTree::hasAdj(int nid1 , int nid2)
+{
+	return hasAdjAux( getRootNode() , nid1, nid2 );
+}
+
+
+/*
+Finds the names of the gene leaves in the adjacency name and find their ids in the RecTree.
+
+Takes:
+	- int nodeId: id of the leaf to annotate
+	- ReconciledTree * Rtree1 : reconciled tree of gfam 1 
+	- ReconciledTree * Rtree2 : reconciled tree of gfam 2
+*/
+void AdjTree::setupLeafNodeIdsFromRecTrees( int nodeId, ReconciledTree * Rtree1 , ReconciledTree * Rtree2)
+{
+	string NodeName = getNodeName(nodeId);
+
+	pair <string, string> leafNames = leafNamesfromAname(NodeName);
+
+	//cout << "looking for names "<< leafNames.first << " and " << leafNames.second << endl;
+
+	int n1 = Rtree1->getIdWithName( leafNames.first );
+	int n2 = Rtree2->getIdWithName( leafNames.second );
+
+	setNodeNodeIds( nodeId , pair<int, int> (n1 , n2) );
+
 }

@@ -1047,7 +1047,31 @@ int main(int args, char ** argv)
         //data structures used for loss aware DeCoSTAR.
         map <int , map < string, vector < pair<string, int > > > > AdjGraph;
         map < int ,pair < vector < pair <string, string> >, bool > > FreeAdjacencies;
+
+
+        //Wmodif of lossAware
+        map< int , map < int, int > > GfamsToECF;
+        for(unsigned  i = 0 ;  i < ECFams->size() ; i++ )
+        {
+            int gfam1 = ECFams->at(i).getGfamily1();
+            int gfam2 = ECFams->at(i).getGfamily2();
+
+            GfamsToECF[gfam1][gfam2] = i;
+        }
+
+        vector < vector< pair< int ,  int > > > PotentialFreeAdjacencyGroups; // list of list of nodes (a node is represented as a pait <gfamId , nodeId>)
+
         
+        map< int ,  map< int , map< int , vector < int > > > >  MapAdjsToTest;
+        // key1 : ECF id
+        // key2 : nodeid1
+        // key3 : nodeid2
+        // value: vector of index of groups of nodes in PotentialFreeAdjacencyGroups that concern this adjacency
+
+
+
+
+
         //variables for timing CPU.
         clock_t begin_iter;
         clock_t end_iter;
@@ -1242,7 +1266,7 @@ int main(int args, char ** argv)
                                             gDoubleParams.find("AGain.cost")->second,
                                             gDoubleParams.find("ABreak.cost")->second, 
                                             init, finish);
-                                
+                                cout << "plop" << endl;
                             }                               
                             //saving to file, and giving filename to ECF so it knows what to look for.
 
@@ -1352,9 +1376,228 @@ int main(int args, char ** argv)
                     if(verbose > 1)
                         cout << "establishing free adj list"<<endl;
                         
-                    MakeFreeAdjacencies(AdjGraph, GeneFamilyList, FreeAdjacencies);
+                    //MakeFreeAdjacencies(AdjGraph, GeneFamilyList, FreeAdjacencies);
                     
-                    if(verbose > 1)
+                    cout << "FreeAdjacencies, pre manip" << endl;
+
+                    map < int ,pair < vector < pair <string, string> >, bool > >::iterator FreeAdjacenciesIt;
+        
+
+                    for( FreeAdjacenciesIt = FreeAdjacencies.begin() ; FreeAdjacenciesIt != FreeAdjacencies.end() ; ++FreeAdjacenciesIt)
+                    {
+                        cout << "ECF:" << FreeAdjacenciesIt->first << " ";
+                        cout << "unchanged:"<< FreeAdjacenciesIt->second.second ;
+
+                        for( unsigned FAit = 0 ; FAit < FreeAdjacenciesIt->second.first.size()  ; FAit ++)
+                            cout << "  " << FreeAdjacenciesIt->second.first.at(FAit).first << "-" << FreeAdjacenciesIt->second.first.at(FAit).second ;
+                        cout << endl;
+                    }
+                    
+                    //Wmodif of lossAware
+                    PotentialFreeAdjacencyGroups.clear();
+                    MapAdjsToTest.clear();
+
+                    FindPotentialFreeAdjacencyGroups(AdjGraph, GeneFamilyList, PotentialFreeAdjacencyGroups);
+
+                    cout << "PotentialFreeAdjacencyGroups" << endl;
+                    for(unsigned PFit = 0 ; PFit <  PotentialFreeAdjacencyGroups.size() ; PFit++ )
+                    {
+                        for( unsigned PFit2 = 0 ; PFit2 <  PotentialFreeAdjacencyGroups[PFit].size() ; PFit2++)
+                        {
+                            cout << " " << PotentialFreeAdjacencyGroups[PFit][PFit2].first << "|" << PotentialFreeAdjacencyGroups[PFit][PFit2].second ;
+                        }
+                        cout << endl;
+                    }
+
+
+
+                    cout << "trying to go from PotentialFreeAdjacencyGroups to actual free adjacencies" << endl;
+
+                    cout << "step one -> gouping adjs by EqClassFam"<< endl;
+
+                    FillMapsOfAdjToTest( PotentialFreeAdjacencyGroups, 
+                                         GfamsToECF,
+                                         MapAdjsToTest
+                                        );
+                    
+                    cout << "step two -> EqClassFam by EqClassFam , looking if adjs exist"<< endl;
+
+                    map< int, bool > ValidPotentialAdjGroup;//true if there is exactly 1 real adj in the group, false otherwise ; non existent if there is none.
+                    map< int, pair< int , pair<string,string> > > ValidPotentialAdj;//from potential adj group to an adjacency (as two pairs od gamId|gId)
+
+
+                    map< int ,  map< int , map< int , vector < int > > > >::iterator it;
+                    for(it = MapAdjsToTest.begin() ; it != MapAdjsToTest.end() ; ++it)
+                    {
+                        int ECFid = it->first;
+                        cout << "ECF "<<ECFid<< " : " <<endl;
+
+                        EquivalenceClassFamily * ECF = &ECFams->at(ECFid);
+                        int gf1 = ECF->getGfamily1();
+                        int gf2 = ECF->getGfamily2();
+
+
+                        bool loadedAtrees = false;
+
+
+
+                        map< int , map< int , vector < int > > >::iterator it2;
+                        for( it2 = it->second.begin() ; it2 != it->second.end() ; ++it2 )
+                        {
+                            for(map< int , vector < int > >::iterator it3 = it2->second.begin() ; it3 != it2->second.end() ; ++it3 )
+                            {
+                                // first, I check that this potential adj does not only belong to groups that have already been proved invalid.
+                                bool needToTest = false;
+
+                                for(auto it4 = it3->second.begin() ; it4 != it3->second.end(); ++it4 )
+                                {
+                                    auto ValidPotentialAdjGroupIterator = ValidPotentialAdjGroup.find( *it4 );
+                                    if( ValidPotentialAdjGroupIterator == ValidPotentialAdjGroup.end() )
+                                    { 
+                                        needToTest = true;
+                                        break;
+                                    }
+                                    else if(ValidPotentialAdjGroupIterator->second)
+                                    { 
+                                        needToTest = true;
+                                        break;
+                                    }
+                                }
+
+                                if(!needToTest) // the adj only cvorresponds to invalid groups --> no need to test it
+                                    continue;
+
+
+
+
+                                bool present = false;
+
+                                string NodeIdStr1 = IntIdsToStringId( gf1 , it2->first );
+                                string NodeIdStr2 = IntIdsToStringId( gf2 , it3->first );
+
+                                cout << " " << NodeIdStr1 << "-" << NodeIdStr2 << " : ";
+
+                                if( ECF->hasAdjInMap( NodeIdStr1 , NodeIdStr2 ))
+                                {
+                                    present = true;
+                                    cout << "(in map) ";
+                                }
+                                else
+                                {
+                                    if(!loadedAtrees) // first adjacency that we have to go look for in the tree -> load it
+                                    {
+                                        LoadECFamTrees( ECF, gBoolParams.find("always.AGain")->second , superverbose, GeneFamilyList->at(gf1)->getRecTree() , GeneFamilyList->at(gf2)->getRecTree() );
+                                        loadedAtrees = true;
+                                    }
+                                    present = ECF->hasAdj(it2->first , it3->first);
+                                }
+
+                                if(present)
+                                    cout << "present";
+                                else
+                                    cout << "absent";
+
+
+                                if(present)
+                                {
+                                    //informing all the concerned adj groups
+                                    for(auto it4 = it3->second.begin() ; it4 != it3->second.end(); ++it4 )
+                                    {
+                                        auto ValidPotentialAdjGroupIterator = ValidPotentialAdjGroup.find( *it4 );
+                                        if( ValidPotentialAdjGroupIterator == ValidPotentialAdjGroup.end() )
+                                        { // no previous adj found for this group --> add them
+                                            ValidPotentialAdjGroup[*it4] = true;
+
+                                            pair<string,string> p1 ( NodeIdStr1 , NodeIdStr2 );
+                                            
+                                            ValidPotentialAdj[*it4] = pair< int, pair<string,string> > ( ECFid ,p1);
+                                        }
+                                        else
+                                        { // already found -> more than 1 valid adj -> invalidate this potential adj group
+                                            ValidPotentialAdjGroupIterator->second = false;
+                                        }
+                                    }
+                                }
+
+                                //for(unsigned i = 0 ; i < it3->second.size() ; i++)
+                                //    cout << it3->second.at(i) << " " ;
+                                cout << endl;
+                            }
+                        }
+
+                        if(loadedAtrees) //Atree loaded -> dump it to avoid potential mem overflow
+                            ECF->dumpAdjForest();
+                    }
+
+                    for( auto itValidPFAgroup = ValidPotentialAdjGroup.begin(); itValidPFAgroup != ValidPotentialAdjGroup.end() ; ++itValidPFAgroup)
+                    {
+                        cout << itValidPFAgroup->first << " ";
+                        if(itValidPFAgroup->second)
+                        {
+                            pair< int , pair<string,string> > ValidAdj = ValidPotentialAdj[ itValidPFAgroup->first ];
+                            cout << ValidAdj.first  <<  " " << ValidAdj.second.first  <<  "-" << ValidAdj.second.second ;
+                        }
+                        else
+                            cout << "invalid";
+                        cout << endl;
+                    }
+
+                    cout << "step three -> we know which adjs are free. update FreeAdjacencies"<< endl;
+
+                    for( auto itValidPFAgroup = ValidPotentialAdjGroup.begin(); itValidPFAgroup != ValidPotentialAdjGroup.end() ; ++itValidPFAgroup)
+                    { // for each group of potentially free adj
+                        
+                        if(itValidPFAgroup->second) // if the group is a valid one (ie. exactly one existing potentialy free adj)
+                        {
+
+                            pair< int , pair<string,string> > ValidAdj = ValidPotentialAdj[ itValidPFAgroup->first ];
+
+                            bool toAdd = true;
+
+                            auto FreeAdjacenciesIt = FreeAdjacencies.find( ValidAdj.first );
+
+                            if( FreeAdjacenciesIt != FreeAdjacencies.end() ) // this ECF already has some free adjs.
+                            {
+                                //we want to check if the proposed free adj is new
+                                if( doesItExist( FreeAdjacenciesIt->second , ValidAdj.second) )
+                                {
+                                    toAdd = false; // it already exists -> do not add it
+                                }
+                            }
+
+                            if(toAdd)
+                            { // we have to add the new free adjacency
+                                FreeAdjacencies[ ValidAdj.first ].first.push_back( ValidAdj.second );
+                                FreeAdjacencies[ ValidAdj.first ].second = false; // we have to re-compute the ECF, because it has at least 1 new free adj.
+                            }
+                        }
+
+                    }
+
+
+                    cout << "FreeAdjacencies, after my manip : " << endl;
+
+                    
+
+                    for( FreeAdjacenciesIt = FreeAdjacencies.begin() ; FreeAdjacenciesIt != FreeAdjacencies.end() ; ++FreeAdjacenciesIt)
+                    {
+                        cout << "ECF:" << FreeAdjacenciesIt->first << " ";
+                        cout << "unchanged:"<< FreeAdjacenciesIt->second.second ;
+
+                        for( unsigned FAit = 0 ; FAit < FreeAdjacenciesIt->second.first.size()  ; FAit ++)
+                            cout << "  " << FreeAdjacenciesIt->second.first.at(FAit).first << "-" << FreeAdjacenciesIt->second.first.at(FAit).second ;
+                        cout << endl;
+                    }
+
+
+                    ////MEGA Clean-up !!
+
+
+                    //exit(1);
+
+                    //end Wmodif of lossAware
+
+                    if(VerboseLevel > 1)
                         cout << "Free Adjacencies list established. Rerunning DeCoSTAR."<< endl;
                     AdjGraph.clear(); // reinitialize the adjacency graph.
                 }//else it's useless because this is the last run.
@@ -1393,12 +1636,12 @@ int main(int args, char ** argv)
 
             if(gBoolParams.find("Loss.aware") -> second)
             {//removing tmp folder and everything it contains.
-                int status = remove((TmpFolder).c_str());
-                    
-                if(status == -1)
-                {
-                    cerr << "tmp folder removal did not work. Exited with system error " << errno<<endl;
-                }
+                //int status = remove((TmpFolder).c_str());
+                //    
+                //if(status == -1)
+                //{
+                //    cerr << "tmp folder removal did not work. Exited with system error " << errno<<endl;
+                //}
                 
             }
         }

@@ -42,7 +42,7 @@ This file contains a class for an adjacency history as a tree
 Created the: 14-12-2015
 by: Wandrille Duchemin
 
-Last modified the: 16-06-2016
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -137,6 +137,9 @@ protected:
 
 	void setNodeNamesAux(int sens1 , int sens2, Node * current);
 
+	bool hasAdjAux( Node *n , int nid1, int nid2 );
+
+
 public:
 
 	AdjTree(){}
@@ -212,6 +215,10 @@ public:
 
 	void getC1LeafList( int gfamIndex, vector < vector <string> > & LeafListList );
 	vector <int> getC1NodeIds(int gfamIndex);
+
+
+	bool hasAdj(int nid1 , int nid2);
+	void setupLeafNodeIdsFromRecTrees( int nodeId, ReconciledTree * Rtree1 , ReconciledTree * Rtree2);
 };
 
 

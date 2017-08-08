@@ -38,7 +38,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -2037,4 +2037,33 @@ int EquivalenceClass::getNumberScoreWithAbsLog10Above(double threshold )
 	if(!SetAdjMatrix)//the adj Matrix is not set -> no need
 		return 0; 
 	return Amat->getNumberScoreWithAbsLog10Above( threshold );
+}
+
+
+
+/*
+only works if trees are set.
+
+returns true if 1 node in an adjtree represents an adjacency between the two speciafied node ids.
+
+Takes:
+	- int nid1 : an id in gfam 1
+	- int nid2 : an id in gfam 2
+
+Returns:
+	(bool) : true if 1 node in an AdjTree represents an adjacency between the two speciafied node ids. false otherwise
+
+*/
+bool EquivalenceClass::hasAdj(int nid1 , int nid2)
+{
+	if(!SetAdjForest)
+		throw Exception("EquivalenceClass::hasAdj : AdjForest is not set.");
+	
+
+	for(unsigned i = 0 ; i < AdjForest->size(); i++)
+	{
+		if( AdjForest->at(i)->hasAdj( nid1 , nid2) )
+			return true;		
+	}
+	return false;	
 }

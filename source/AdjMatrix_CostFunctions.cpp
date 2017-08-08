@@ -40,7 +40,7 @@ This file contains the functions relative to cost computation for the class AdjM
 Created the: 12-05-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -2223,6 +2223,7 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 	if(LossAware)
 	{ //this is equivalent to the hasFreeAdj() function in AdjMatrix.cpp.  but with the exception that it detect which case should have the free gain!
 		
+		/*
 		if(Rtree1.hasNodeName(SonsId1[0]))
 		{
 			SonsName1[0] = Rtree1.getNodeName(SonsId1[0]);
@@ -2269,7 +2270,21 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 			ss << Gfam2 << '|' << SonsId2[1];
 			SonsName2[1] = ss.str();
 		}
-	
+		*/
+		for(unsigned i = 0 ; i < 2 ; i++)
+		{
+			stringstream ss;
+			ss << Gfam1 << '|' << SonsId1[i];
+			SonsName1[i] = ss.str();
+		}
+		for(unsigned i = 0 ; i < 2 ; i++)
+		{
+			stringstream ss;
+			ss << Gfam2 << '|' << SonsId2[i];
+			SonsName2[i] = ss.str();
+		}
+
+
 		for(int i=0; i < currFreeAdjacencies.first.size(); i++)
 		{
 			//cout << currFreeAdjacencies.first[i].first << " , " << currFreeAdjacencies.first[i].second << endl;
@@ -2302,6 +2317,20 @@ vector<AdjSolution> AdjMatrix::SolutionC0synchronousTwoChildren(int NodeId1, int
 			}
 		}
 	}
+
+//	if(corr_a1b1 == 1)
+//		cout << "free adj" <<  SonsName1[0] << " " << SonsName2[0]<< endl;
+//
+//	if(corr_a2b1 == 1)
+//		cout << "free adj" <<  SonsName1[1] << " " << SonsName2[0]<< endl;
+//
+//	if(corr_a1b2 == 1)
+//		cout << "free adj" <<  SonsName1[0] << " " << SonsName2[1]<< endl;
+//
+//	if(corr_a2b2 == 1)
+//		cout << "free adj" <<  SonsName1[1] << " " << SonsName2[1] << endl;
+
+
 
 	//There is 16 possible cases representing all c1 and c0 combination of the sons of 1 an 2
 	vector <double> caseScore;

@@ -39,7 +39,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -811,3 +811,53 @@ string EquivalenceClassFamily::getTmpFile() const
 	return TmpFileName;
 }
 
+
+/*
+only works if trees are set.
+
+returns true if 1 node in an adjtree represents an adjacency between the two speciafied node ids.
+
+Takes:
+	- int nid1 : an id in gfam 1
+	- int nid2 : an id in gfam 2
+
+Returns:
+	(bool) : true if 1 node in an AdjTree represents an adjacency between the two speciafied node ids. false otherwise
+
+*/
+bool EquivalenceClassFamily::hasAdj(int nid1 , int nid2)
+{
+
+	for(unsigned i = 0 ; i < getNbEqClasses() ; i++ )
+	{
+		if( EclassList[i].hasAdj( nid1 , nid2) )
+			return true;
+	}
+
+	return false;	
+}
+
+
+/*
+only works if Adj maps  are set.
+
+returns true if 1 node in an adjtree represents an adjacency between the two speciafied node ids.
+
+Takes:
+	- string NodeIdStr1 : format "gfam1|id1"
+	- string NodeIdStr2 : format "gfam2|id2"
+
+Returns:
+	(bool) : true if the adj in in the adj maps
+
+*/
+bool EquivalenceClassFamily::hasAdjInMap(string NodeIdStr1 , string NodeIdStr2 )
+{
+	auto it1 = AdjIndexMap.find( NodeIdStr1 );
+	if(it1 != AdjIndexMap.end() )
+	{
+		auto it2 = it1->second.find( NodeIdStr2 );
+		return ( it2 != it1->second.end() );
+	}
+	return false;
+}
