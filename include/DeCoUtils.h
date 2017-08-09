@@ -275,7 +275,7 @@ void ReadAdjMaps(int actualIndex, map <int , map < string, vector < pair<string,
 //map < int ,vector < pair <string, string> > > ReadFreeAdjacenciesFile(string filename);
 void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
                                     vector <GeneFamily *> * GeneFamilyList,
-                                    map < int ,pair < vector < pair <string, string> >, bool > > & FreeAdjacencies);
+                                    map < int ,pair < vector < pair <string, string> >, bool > > & FreeAdjacencies); // !! deprecated !! , use fillUpFreeAdjacencies instead
 
 
 pair < int, int> FindGroupLoss(int OrNode, int OrFam, 
@@ -296,13 +296,13 @@ bool doesItExist( pair < vector < pair <string, string> >, bool > &FamFreeAdjace
 //Wandrille modification of LossAware
 void FindPotentialFreeAdjacencyGroups(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
                               vector <GeneFamily *> * GeneFamilyList,
-                              vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups );
+                              vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups , bool verbose );
 
 
 
 void FillMapsOfAdjToTest( vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups, 
                         map< int , map < int, int > > & GfamsToECF,
-                        map< int ,  map< int , map< int , vector < int > > > > & MapAdjsToTest
+                        map< int ,  map< int , map< int , vector < int > > > > & MapAdjsToTest , bool verbose
                               );
 
 
@@ -315,6 +315,13 @@ string IntIdsToStringId( int gfam , int node );
 bool LoadECFamTrees(EquivalenceClassFamily * ECF, bool gainAtRoot, bool VERBOSE, ReconciledTree * Rtree1 = NULL, ReconciledTree * Rtree2 = NULL);
 
 //vector <AdjTree * > * readAdjForest(string filename, int gfam1, int gfam2, bool gainAtRoot, bool VERBOSE);
+
+
+void fillUpFreeAdjacencies( map < int ,pair < vector < pair <string, string> >, bool > > &FreeAdjacencies,
+                                          map <int , map < string, vector < pair<string, int > > > > & AdjGraph, vector <GeneFamily *> * GeneFamilyList,
+                                          map< int , map < int, int > > &GfamsToECF, 
+                                          vector <EquivalenceClassFamily> * ECFams, bool alwaysAgain,
+                                          int verboseLevel );
 
 
 #endif
