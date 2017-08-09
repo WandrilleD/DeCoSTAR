@@ -4116,116 +4116,6 @@ void copyTmpToFile(string filename, EquivalenceClassFamily * ECF)
 
 /*
 Takes:
-	- int OrNode: id of the node that was originally looked at.
-	- int OrFam: Fam of the node that was originally looked at.
-	- int spe_loss: species in which the loss has occured
-	- int father_spe: mother species of the one that has the loss(es).
-	- int Node: The node from which we shall do the search.
-	- int Fam: Gene family of the node.
-	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph: A map containing the Adjacencies computed so far
-	- map < int, ReconciledTree * > loadedRecTrees: map containing all the reconciled gene trees
-	- vector <GeneFamily *> * GeneFamilyList : a vector containing the gene families
-
-Returns:
-	- pair <int, int> node not immediately neighbors of the loss, but at the end of a group of genes that is lost, that can get a free adjacency
-							- the first int is Gfam Id
-							- the second int is node Id
-*/
-pair < int, int> FindGroupLoss(int OrNode, int OrFam, int spe_loss, int father_spe, int Node, int Fam,
-								map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
-								vector <GeneFamily *> * GeneFamilyList)
-{
-	pair <int, int> result;
-	bool done = false;
-	
-	string currNodeName = boost::lexical_cast<std::string>(Fam) + "|" + boost::lexical_cast<std::string>(Node);
-	string oldNodeName = boost::lexical_cast<std::string>(OrFam) + "|" + boost::lexical_cast<std::string>(OrNode);
-	string newNodeName;
-	int newFam;
-	int newNode;
-	int iter = 0;//We'll give a max iteration in case it gets stuck in loops of gene losses.
-
-
-	while(done == false)
-	{
-		iter++;
-		if(iter > 5000)
-		{//to avoid looping around a group of lost genes for infinity
-			//Losing 5000 genes at once should be deadly for any organisms, but this is arbitrary.
-			done = true;
-			result.first = -1;
-			result.second = -1;
-			//cout << "loss loop." << endl;
-		}
-		if(AdjGraph[father_spe][currNodeName].size() == 2)
-		{//only two neighbors.
-			for(unsigned i = 0; i < AdjGraph[father_spe][currNodeName].size(); i++) // for each neighbor of the current node
-			{
-				if(AdjGraph[father_spe][currNodeName][i].first == oldNodeName) // this is where we come from
-				{
-					continue;// if it's the one we looked into previously, we're not interested.
-				}
-				else
-				{//new node to look into?
-					newNodeName = AdjGraph[father_spe][currNodeName][i].first;
-					string segment;
-					vector <string> seglist;
-					
-					stringstream nodename(newNodeName);
-					
-					while(getline(nodename, segment, '|'))
-					{
-					   seglist.push_back(segment);
-					}
-					newFam = atoi(seglist[0].c_str());
-					int newNode = atoi(seglist[1].c_str());
-					
-					ReconciledTree * newRecTree = GeneFamilyList->at(newFam)->getRecTree();
-					vector <int> newSons = newRecTree -> getSonsId(newNode);
-
-					if(newRecTree -> getNodeSpecies(newSons[0]) == spe_loss){
-
-						if(newRecTree -> getNodeEvent(newSons[0]) == 1 or newRecTree -> getNodeEvent(newSons[0]) == 0)//1 is spe, 0 is extant.
-						{//we found a candidate.
-							done = true;
-							result.first = newFam;
-							result.second = newSons[0];
-							break;//don't need to iter further.
-						}
-					}else{
-
-						if(newRecTree -> getNodeSpecies(newSons[1]) == spe_loss){
-							if(newRecTree -> getNodeEvent(newSons[1]) == 1 or newRecTree -> getNodeEvent(newSons[1]) == 0)//1 is spe, 0 is extant.
-							{//we found a candidate.
-								done = true;
-								result.first = newFam;
-								result.second = newSons[1];
-								break;//don't need to iter further.
-							}//else keep looking.
-						}
-					}
-					//up to this point, nothing has been found. Set variables for the next neighbor.
-					oldNodeName = currNodeName;
-					currNodeName = newNodeName;	
-					break;//no need to iter further, as there are only two neighbors.
-				}
-			}
-			
-		}
-		else
-		{//if there's more than 2 neighbors, we can't decide so there's no candidates.
-			done = true;
-			result.first = -1;
-			result.second = -1;
-		}
-		
-	}
-	
-	return result;
-}
-
-/*
-Takes:
 	- pair < vector < pair <string, string> >, bool > FamFreeAdjacencies: The family in which we want to add the adjacency
 	- pair < string, string > potentialFreeAdjacency: the adjacency we want to add.
 Returns:
@@ -4340,7 +4230,9 @@ void FindPotentialFreeAdjacencyGroups(map <int , map < string, vector < pair<str
 									pair <int, int> candidateNode;
 									candidateNode = FindGroupLoss(ParentId, GeneFamilyId, LossSpecies, ParentSpecies, 
 																	currNode, currFam, AdjGraph, GeneFamilyList); // using Adelme's function. This may change as it does not have a memory larger than 1
-									
+
+
+
 									if(candidateNode.first != -1)
 									{
 										currFam = candidateNode.first;
@@ -4648,7 +4540,24 @@ bool LoadECFamTrees(EquivalenceClassFamily * ECF, bool gainAtRoot, bool VERBOSE,
 
 
 /*
+This function replaces  MakeFreeAdjacencies.
+Mainly, it allows free adjacencies between nodes other than speciations or leaves. Doing so requires that we go lookup in the adjTree
+To avoid loading all the adj trees at once in memory, we do several step were we successively 
+group the potential adjacencies according to the ECF they belong to and then 
+go look for the adjacencies, ECF by ECF (thus only loading 1 adjforest at a time).
 
+
+Takes:
+	 - map < int ,pair < vector < pair <string, string> >, bool > > &FreeAdjacencies : structure that will be filled up  / completed 
+	 - map <int , map < string, vector < pair<string, int > > > > & AdjGraph : graph between extant adjacencies. Used to detect places make free adjs would be needed, and sometimes to check free adjs too
+	 - vector <GeneFamily *> * GeneFamilyList : list of gene families (needed to access reconciled trees)
+	 - map< int , map < int, int > > &GfamsToECF : map to quickly find the ECF index given a couple of gene families id
+	 - vector <EquivalenceClassFamily> * ECFams : the Equivalence Class families
+	 - bool alwaysAgain : used to read the AdjTtree (not really necessary here)
+	 - int verboseLevel : this function will write only if this is >2
+
+Returns:
+	void
 */
 void fillUpFreeAdjacencies( map < int ,pair < vector < pair <string, string> >, bool > > &FreeAdjacencies,
 							map <int , map < string, vector < pair<string, int > > > > & AdjGraph, vector <GeneFamily *> * GeneFamilyList,
@@ -4889,5 +4798,132 @@ void fillUpFreeAdjacencies( map < int ,pair < vector < pair <string, string> >, 
     }
 
 
-                    ////MEGA Clean-up !!
+}
+
+
+
+
+
+
+
+/*
+Takes:
+	- int OrNode: id of the node that was originally looked at.
+	- int OrFam: Fam of the node that was originally looked at.
+	- int spe_loss: species in which the loss has occured
+	- int parent_spe: parent species of the one that has the loss(es).
+	- int NodeId: The node from which we shall do the search.
+	- int Fam: Gene family of the node.
+	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph: A map containing the Adjacencies computed so far
+	- vector <GeneFamily *> * GeneFamilyList : a vector containing the gene families
+
+Returns:
+	- pair <int, int> node not immediately neighbors of the loss, but at the end of a group of genes that is lost, that can get a free adjacency
+							- the first int is Gfam Id
+							- the second int is node Id
+*/
+pair < int, int> FindGroupLoss(int OrNode, int OrFam, 
+								  int spe_loss, int parent_spe,
+								  int NodeId, int Fam,
+								map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+								vector <GeneFamily *> * GeneFamilyList)
+{
+	pair <int, int> result;
+	result.first = -1;
+	result.second = -1;
+	bool done = false;
+	
+	string currNodeName = IntIdsToStringId(Fam , NodeId);
+	string oldNodeName = IntIdsToStringId(OrFam , OrNode);
+
+	string newNodeName;
+
+	int iter = 0;//We'll give a max iteration in case it gets stuck in loops of gene losses.
+
+	vector < string > NodeMemory ; 
+
+	while(done == false)
+	{
+		iter++;
+		if(iter > 5000)
+		{//to avoid looping around a group of lost genes for infinity
+			done = true;
+
+			//cout << "loss loop." << endl;
+		}
+
+		vector < pair<string, int > >  * NodeNeighbours =  & AdjGraph[ parent_spe ][ currNodeName ];
+
+		if( NodeNeighbours->size() == 2 )
+		{//only two neighbors.
+
+			bool foundNewNode = false;
+
+			for(unsigned i = 0; i < NodeNeighbours->size(); i++) // for each neighbour of the current node
+			{
+				newNodeName = NodeNeighbours->at(i).first;
+				
+				//1st : check if the node was already seen
+				bool alreadySeen = false;
+
+				for( auto rit = NodeMemory.rbegin() ; rit != NodeMemory.rend() ; ++rit) // <- inverse itaration because i know that the last element of the vector is one of the neighbour of current node.
+				{
+					if( *rit  == newNodeName )
+					{
+						alreadySeen = true;
+						break;
+					}
+				}
+				if( alreadySeen ) // this node was already encountered
+					continue;
+
+				foundNewNode = true;
+
+				pair<int,int> NewIds =  StringIdToIntIds( newNodeName );
+
+				ReconciledTree * newRecTree = GeneFamilyList->at( NewIds.first )->getRecTree();
+				
+				Node * newNode = newRecTree->getNode( NewIds.second );
+
+				vector < Node * > newNodeChildren = newNode->getSons();
+				// here is it presumed that new node is a speciation and that it has 2 children (even if one of them is a loss)
+				for(unsigned j = 0 ; j < newNodeChildren.size() ; j++)
+				{
+					if(newRecTree->getNodeSpecies(newNodeChildren[j]) == spe_loss)
+					{
+
+						if( ! newRecTree->isLoss( newRecTree->getNodeEvent(newNodeChildren[j]) ) ) // this is not a loss
+						{//we found a candidate.
+							done = true;
+							result.first = NewIds.first;
+							result.second = newNodeChildren[j]->getId();
+							break;//don't need to iter further.
+						}
+					}
+				}
+				if(!done)
+				{
+					//up to this point, nothing has been found. Set variables for the next neighbour.
+					NodeMemory.push_back(currNodeName);
+					currNodeName = newNodeName;		
+				}
+				break;//no need to iter further, as there are only two neighbors.
+
+			}
+
+			////// check for loops /////
+			if(!foundNewNode)
+			{ // all the neighbours of the current node have already been seen (circular pattern)
+				done = true;
+			}
+			
+		}
+		else
+		{//if there's more than 2 neighbors, we can't decide so there's no candidates.
+			done = true;
+		}
+		
+	}
+	
+	return result;
 }
