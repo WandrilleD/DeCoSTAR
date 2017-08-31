@@ -68,7 +68,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 string version = "0.9.2";
-string date = "11/01/17";
+string date = "31/08/17";
 //0.9.2 -> connex component computation
 //0.9.1 -> extremities specific artdeco score and new option, no connex component computation
 
@@ -587,8 +587,8 @@ int main(int args, char ** argv)
         if( VerboseLevel > 1 ) 
             printParameters();
 
-//        if( gBoolParams.find("verbose")->second ) 
-//            bpp::ApplicationTools::startTimer();
+        //if( gBoolParams.find("verbose")->second ) 
+        //    bpp::ApplicationTools::startTimer();
 
         clock_t begin;
         clock_t end;
@@ -620,6 +620,8 @@ int main(int args, char ** argv)
         vector <GeneFamily *> * GeneFamilyList = new vector <GeneFamily *>;
 
         readGeneDistributions( GeneFamilyList, speciesTree , geneFiles, gBoolParams.find("ale")->second ,  gBoolParams.find("already.reconciled")->second, gStringParams.find("char.sep")->second[0] ,verbose, superverbose , gBoolParams.find("rooted")->second );
+
+
 
         if(VerboseLevel > 0)
             cout << "read " << GeneFamilyList->size() << " gene families." << endl;

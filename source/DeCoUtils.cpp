@@ -2510,6 +2510,8 @@ void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree
 					GeneFamilyList->push_back(new GeneFamily(geneTrees, charSep,verbose, superverbose));
 				else // rooted case
 					GeneFamilyList->push_back(new GeneFamily( *(geneTrees[0]), charSep,verbose, superverbose, rooted));
+
+
 			}
 			else // reconciled tree
 			{

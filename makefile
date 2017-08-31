@@ -28,7 +28,7 @@ EXES=$(patsubst %,$(BDIR)/%,$(_EXES))
 
 all: $(EXES)
 
-debug: CPPFLAGS = -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE) -g
+debug: CPPFLAGS = -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE) -g -std=c++11
 debug: all
 
 

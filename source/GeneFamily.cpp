@@ -43,7 +43,7 @@ This file contains a class for Gene Family as a Clade and Tripartition instance 
 Created the: 18-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 02-11-2016
+Last modified the: 31-08-2017
 by: Wandrille Duchemin
 
 */
@@ -72,7 +72,10 @@ bool GeneFamily::CheckGeneTree(MyGeneTree * geneTree, string &errStr, bool roote
 	}
 
 
+
 	MyGeneNode * rootNode = geneTree->getRootNode();
+
+
 
 	if(rootNode->getNumberOfSons() > 2)
 	{ // multifurcating roots are ok if we aren't in rooted mode
@@ -89,6 +92,8 @@ bool GeneFamily::CheckGeneTree(MyGeneTree * geneTree, string &errStr, bool roote
 			return false;
 		}
 	}
+
+
 
 	vector <Node * > NodeToDo = rootNode->getSons();
 
@@ -110,6 +115,9 @@ bool GeneFamily::CheckGeneTree(MyGeneTree * geneTree, string &errStr, bool roote
 			NodeToDo.push_back(current->getSon(i));
 
 	}
+
+
+
 
 	return true;
 }
@@ -527,7 +535,8 @@ GeneFamily::GeneFamily(MyGeneTree UnrootedgeneTree, char charsep, bool verbose, 
 	string errString = "";
 	if(!CheckGeneTree(&UnrootedgeneTree, errString, rooted))
 	{
-		throw Exception("GeneFamily::GeneFamily : error whith the tree : " + errString );	
+		cerr << "GeneFamily creation : error whith the tree : " << errString << endl;
+		exit(1);
 	}
 
 	UnrootedTree = UnrootedgeneTree;

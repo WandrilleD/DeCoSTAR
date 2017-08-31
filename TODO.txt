@@ -9,6 +9,7 @@ This is TODO-list of the various things that should be changed/added in DeCoSTAR
     - gibbs-sampling-like optimization of linearity through adj scenrios sampling
     - ??multi-threaded version of DeCoSTAR??
 
+
   Things to add to the doc:
    - explain that the binary exists and on which platform it has been compiled ( il faut faire make clean avant make all )
    - explain the new options
