@@ -422,7 +422,7 @@ Takes:
 	- int id2: id in the second tree
 	
 Returns:
-	( double ) : non redundant count of solutions
+	( double ) : non redundant count of solutions || -1 in case of problem
 */
 double AdjMatrix::setMapsBacktrackC0(int id1, int id2)
 {
@@ -431,6 +431,7 @@ double AdjMatrix::setMapsBacktrackC0(int id1, int id2)
 
 	map<int , vector< vector< boost::tuples::tuple<int,int,bool> > > > tmpMap = getC1BacktrackRootMaps( id1 , id2);
 
+	double nbbtLimit = 1000000000000;
 
 	// the number of history is the sum of the number of history for each solution
 	double nbbt = 0;
@@ -445,17 +446,32 @@ double AdjMatrix::setMapsBacktrackC0(int id1, int id2)
 			double tmp = 1;
 			for(vector< boost::tuples::tuple<int,int,bool> >::iterator it3 = (*it2).begin(); it3 != (*it2).end() ; ++it3)
 			{
+
 				double nb = getNbBacktrackMatrix(get<0>(*it3),get<1>(*it3),get<2>(*it3));
+				//cout << "setting C0nbbt " << get<0>(*it3) << "," << get<1>(*it3) << "," << get<2>(*it3) << "->" << nb << endl;
 				if(nb != 0)
 					tmp *= nb;
 			}
 			mapNbBacktrack[it->first] += tmp;
 		}
 		nbbt += mapNbBacktrack[it->first];
+
+		if( (nbbt < 0)||(nbbt > nbbtLimit))
+		{ // suspicion of overflow
+			return -1;
+		}
 		//cout << "setMapsBacktrackC0 "<<id1<<"-"<<id2<<"- " << it->first << ": " << mapNbBacktrack[it->first] << endl;
 	}
 	if(verbose)
-		cout << "setMapsBacktrackC0 "<<id1<<"-"<<id2<<" total: " << nbbt<< endl;
+	{
+		cout << "set NbBacktrack : "<<id1<<"-"<<id2<<" "<<"C0"<<endl;
+		cout << " "<< nbbt << " <-";
+		for(map<int,double>::iterator it = mapNbBacktrack.begin(); it != mapNbBacktrack.end();++it)
+			cout << " " << it->second << " (" << it->first << ")";
+		cout << endl;
+	}
+
+
 	setNbBacktrackMatrix(id1,id2, nbbt, false);
 	setMapNbBacktrackMatrix(id1,id2, mapNbBacktrack, false);
 	return nbbt;
@@ -514,12 +530,22 @@ void AdjMatrix::InitNbBacktrackMatrices()
 
 }
 
+/*
+Takes:
+	- bool doC1 : whether or not to compute that
+	- bool doC0 : whether or not to compute that
 
-void AdjMatrix::computeNbBacktrackMatrix(bool doC1, bool doC0)
+Returns:
+	(bool) : true if no problem occured
+			 false if a problem occured and NBBT should be ignored
+*/
+bool AdjMatrix::computeNbBacktrackMatrix(bool doC1, bool doC0)
 {
 	vector< pair <int,int> > IndexTODO;
 	vector< bool > C1TODO;
 	int DEFAULT = -1;
+
+	double nbbtLimit = 1000000000000;
 
 	if(doC1)
 	{
@@ -577,6 +603,13 @@ void AdjMatrix::computeNbBacktrackMatrix(bool doC1, bool doC0)
 					{
 						nbbt += it->second;
 					}
+
+					if( (nbbt < 0)||(nbbt > nbbtLimit) )
+					{ // suspicion of overflow
+						return false;
+					}
+
+
 					setNbBacktrackMatrix(id1,id2, nbbt, c1);
 					setMapNbBacktrackMatrix(id1,id2, mapNbBacktrack, c1);
 					if(verbose)
@@ -591,7 +624,9 @@ void AdjMatrix::computeNbBacktrackMatrix(bool doC1, bool doC0)
 				else
 				{ // c0 -> we want to make sure we don't count scenarios that only differ in what happens in c0
 					//getListListReturnCase( id1, id2, false,c1)
-					setMapsBacktrackC0( id1,  id2);
+					double nbbt = setMapsBacktrackC0( id1,  id2);
+					if(nbbt==-1)
+						return false;
 				}
 			}
 		}
@@ -619,6 +654,7 @@ void AdjMatrix::computeNbBacktrackMatrix(bool doC1, bool doC0)
 
 	cout << "***************"<<endl;
 	*/
+	return true;
 }
 
 /*
@@ -974,8 +1010,18 @@ void AdjMatrix::backtrackAux( vector< AdjTree *> * AdjacencyTrees, bool stochast
 			InitNbBacktrackMatrices();
 			bool doC1 = true;
 			bool doC0 = true;
-			computeNbBacktrackMatrix(doC1,doC0);
-			backtrackCountMatrixDone=true;
+			bool problem = computeNbBacktrackMatrix(doC1,doC0);
+			if(problem)
+			{
+				cerr << "A problem occured during the computation of the number of possible most parsimonious adjacency history (overflow?).\nThe backtrack will occur but will choose most parsimonious solutions randomly rather than according to the number of most parsimonious adjacency histories they can generate."<<endl;
+				backtrackCountMatrixDone=false;
+			}
+			else
+			{ // no problem, just proceed
+				backtrackCountMatrixDone=true;
+				doNBBT = false;
+			}
+
 			clearC1BacktrackRootMaps(); // clearing sme space
 		}
 	}

@@ -130,7 +130,7 @@ protected:
 	vector< vector< map< int,double > > > MapNbBacktrackC0;
 
 	void InitNbBacktrackMatrices(); // also inits the map ones
-	void computeNbBacktrackMatrix(bool doC1, bool doC0);
+	bool computeNbBacktrackMatrix(bool doC1, bool doC0);
 
 	double getNbBacktrack(AdjSolution s);
 	double getNbBacktrack(AdjSolution s, vector < pair<int,int> > &nonSet, vector <bool> &nonSetC1);

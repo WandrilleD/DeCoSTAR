@@ -1,7 +1,7 @@
 /*
 Created by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 01-09-2017
 by: Wandrille Duchemin
 
 
@@ -68,7 +68,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 string version = "0.9.2";
-string date = "31/08/17";
+string date = "01/09/17";
 //0.9.2 -> connex component computation
 //0.9.1 -> extremities specific artdeco score and new option, no connex component computation
 
