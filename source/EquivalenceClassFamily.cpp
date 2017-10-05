@@ -39,7 +39,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -647,8 +647,9 @@ Takes:
  	- int &overflowed : number of EC that overflows
  	- alwaysGainAtTop (bool) [default: true]: there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  	- c1proba (double) [default = 0.5]: probability to choose c1 over c0 IF (and only if) they have the same score
+ 	- bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts
 */
-void EquivalenceClassFamily::backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector < vector< AdjTree *> * >  * AdjacencyTreesVector, bool stochastic, int &overflowed, bool alwaysGainAtTop , double c1proba )
+void EquivalenceClassFamily::backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector < vector< AdjTree *> * >  * AdjacencyTreesVector, bool stochastic, int &overflowed, bool alwaysGainAtTop , double c1proba , bool doNBBT)
 {
 	//cout << "EquivalenceClassFamily::backtrackAdjMatrix init" << endl;
 	for(unsigned i = 0; i < EclassList.size(); i++)
@@ -656,7 +657,7 @@ void EquivalenceClassFamily::backtrackAdjMatrix(ReconciledTree * rtree1, Reconci
 		//cout << "EquivalenceClassFamily::backtrackAdjMatrix "<< i << endl;
 		bool overflow = false;
 		AdjacencyTreesVector->push_back( new vector< AdjTree *>);
-		EclassList[i].backtrackAdjMatrix( rtree1, rtree2,  AdjacencyTreesVector->back(),  stochastic, overflow, alwaysGainAtTop , c1proba ); //WMODIF
+		EclassList[i].backtrackAdjMatrix( rtree1, rtree2,  AdjacencyTreesVector->back(),  stochastic, overflow, alwaysGainAtTop , c1proba , doNBBT); //WMODIF
 		if(overflow)
 			overflowed++;
 	}
@@ -672,12 +673,13 @@ Takes:
  	- stochastic (bool): true if the backtrack is to be stochastic; false if the backtrack choses the solution with the best score
  	- alwaysGainAtTop (bool) [default: true]: there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  	- c1proba (double) [default = 0.5]: probability to choose c1 over c0 IF (and only if) they have the same score
+  	- bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts	
 */
-void EquivalenceClassFamily::backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop , double c1proba )
+void EquivalenceClassFamily::backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop , double c1proba , bool doNBBT)
 {
 
 	for(unsigned i = 0; i < EclassList.size(); i++)
-		EclassList[i].backtrackAdjMatrixForSelf( rtree1, rtree2, stochastic, alwaysGainAtTop , c1proba ); //WMODIF
+		EclassList[i].backtrackAdjMatrixForSelf( rtree1, rtree2, stochastic, alwaysGainAtTop , c1proba , doNBBT); //WMODIF
 }
 		
 

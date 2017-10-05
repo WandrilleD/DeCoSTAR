@@ -39,7 +39,7 @@ This file contains various functions used by DeCo
 Created the: 02-03-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -1953,15 +1953,15 @@ Takes:
  - bool galwaysGain : there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  - double gC1Advantage : probability to choose c1 over c0 IF (and only if) they have the same score
  - int &overflowed : nuùmber of overflowed EC
-
+ - bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts	
 */
-void backtrackOnetimeOneEquivalenceClassFamily( ECFsample * Sample, EquivalenceClassFamily * ECF , vector <GeneFamily *> * GeneFamilyList , bool boltzmann, bool Verbose, bool SuperVerbose, bool galwaysGain, double  gC1Advantage, int &overflowed)
+void backtrackOnetimeOneEquivalenceClassFamily( ECFsample * Sample, EquivalenceClassFamily * ECF , vector <GeneFamily *> * GeneFamilyList , bool boltzmann, bool Verbose, bool SuperVerbose, bool galwaysGain, double  gC1Advantage, int &overflowed, bool doNBBT)
 {
 	ReconciledTree * Rtree1 =  GeneFamilyList->at(ECF->getGfamily1())->getRecTree();
 	ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
 
 
-	ECF->backtrackAdjMatrix(Rtree1, Rtree2, Sample , boltzmann, overflowed, galwaysGain, gC1Advantage); // creates the adj forest 
+	ECF->backtrackAdjMatrix(Rtree1, Rtree2, Sample , boltzmann, overflowed, galwaysGain, gC1Advantage, doNBBT); // creates the adj forest 
 }
 
 /*

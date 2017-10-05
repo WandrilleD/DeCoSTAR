@@ -42,7 +42,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -284,9 +284,9 @@ public:
 	void computeAdjMatrix(double WDupCost, double WLossCost, double WHgtCost);
 
 	bool iscomputedAdjMatrix();
-	void backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool &overflow,  bool alwaysGainAtTop = true, double c1proba = 0.5); // creates the adj forest
+	void backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool &overflow,  bool alwaysGainAtTop = true, double c1proba = 0.5, bool doNBBT = true); // creates the adj forest
 
-	void backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop = true, double c1proba = 0.5, double verbose=false); // creates the adj forest
+	void backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop = true, double c1proba = 0.5, bool doNBBT = true, double verbose=false); // creates the adj forest
 	int getNbAdjTrees();
 	int getNbAdjGain();
 	int getNbAdjBreak();

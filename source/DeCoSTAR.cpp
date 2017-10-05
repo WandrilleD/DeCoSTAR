@@ -1,7 +1,7 @@
 /*
 Created by: Wandrille Duchemin
 
-Last modified the: 01-09-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 
@@ -67,8 +67,11 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 
-string version = "0.9.2";
-string date = "01/09/17";
+string version = "1.1.1";
+string date = "05/10/17";
+//1.1.1 NBBT option to avoid memory hog
+//1.1 loss aware
+//1 -> paper release
 //0.9.2 -> connex component computation
 //0.9.1 -> extremities specific artdeco score and new option, no connex component computation
 
@@ -80,7 +83,7 @@ map<string,string> gStringParams; // string, char, and path
 
 
 
-const int gParameterCount = 43;
+const int gParameterCount = 44;
 string const gParameters[gParameterCount][4] = {
 // files
  {"parameter.file", "path", "none", "a file with input parameters" },
@@ -144,7 +147,9 @@ string const gParameters[gParameterCount][4] = {
  {"always.AGain","bool","true","always put an Ajdacency Gain at the top of an equivalence class tree"},
  {"absence.penalty","double","-1","if set to -1 (the default), nothing changes. Otherwise, specify the cost of having an adjacency at a pair of leaves which are not part of the list of adjacencies given at initialization"},
  {"substract.reco.to.adj","bool","false","if set to 1, the weighted cost of a reconciliation event will be used to favor co-event in the adjacency matrix computation. Unavalaible for Boltzmann computation."},
- 
+ {"count.number.backtracks","bool","false","if set to 1, adjacency scenarios will be sampled uniformly across most parsimonious histories. potential memory overload if the reconciled gene trees are big (hundreds of leaves each)."},
+
+
  {"Topology.weight","double","1","weight of the topology in the global score" },
  {"Reconciliation.weight","double","1","weight of the reconciliation in the global score" },
  {"Adjacency.weight","double","1","weight of the adjacency in the global score" }
@@ -1199,7 +1204,7 @@ int main(int args, char ** argv)
                         backtrackOnetimeOneEquivalenceClassFamily(AdjTreeSample, ECF, GeneFamilyList , 
                                                             stochasticBT,
                                                             verbose, superverbose,
-                                                            gBoolParams.find("always.AGain")->second , gDoubleParams.find("C1.Advantage")->second, overflowed );
+                                                            gBoolParams.find("always.AGain")->second , gDoubleParams.find("C1.Advantage")->second, overflowed , gBoolParams.find("count.number.backtracks")->second);
                         
                                                 
                         if(VerboseLevel > 1)

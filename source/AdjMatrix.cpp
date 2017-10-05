@@ -41,7 +41,7 @@ Created the: 30-11-2015
 by: Wandrille Duchemin
 
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -990,7 +990,7 @@ AdjSolution AdjMatrix::chooseRandomSolutionUsingBacktrackCount(int id1, int id2,
 
 
 
-void AdjMatrix::backtrackAux( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop , double c1proba , int Root1, int Root2)
+void AdjMatrix::backtrackAux( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop , double c1proba , int Root1, int Root2, bool doNBBT )
 {
 
 	double c1 = getC1(Root1,Root2);
@@ -999,8 +999,6 @@ void AdjMatrix::backtrackAux( vector< AdjTree *> * AdjacencyTrees, bool stochast
 	if(verbose)
 		cout << "AdjMatrix::backtrackAux (before root gain is applied)" << Root1 << "-" << Root2 << "-> c1: "<< c1 << " , c0: " << c0 <<endl;
 	//verbose=true;
-
-	bool doNBBT = true;
 
 	if(doNBBT)
 	{
@@ -2809,7 +2807,7 @@ Takes:
  	- alwaysGainAtTop (bool) [default: true]: there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  	- c1proba (double) [default = 0.5]: probability to choose c1 over c0 IF (and only if) they have the same score
 */
-void AdjMatrix::backtrack( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop, double c1proba )
+void AdjMatrix::backtrack( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop, double c1proba , bool doNBBT  )
 {
 	//this is resolved by the generalized formulae
 	//if(rootList.size() == 0)
@@ -2827,7 +2825,7 @@ void AdjMatrix::backtrack( vector< AdjTree *> * AdjacencyTrees, bool stochastic,
 		if(hasFreeAdj(rootList[i].first,rootList[i].second) && LossAware){
 			GainAtTop = false;
 		}//if the adjacency at the root is part of the "free" adjacencies, and loss awareness is on, then there is no gain.
-		backtrackAux(AdjacencyTrees,stochastic,GainAtTop,c1proba, rootList[i].first, rootList[i].second );
+		backtrackAux(AdjacencyTrees,stochastic,GainAtTop,c1proba, rootList[i].first, rootList[i].second , doNBBT );
 	}
 	
 }

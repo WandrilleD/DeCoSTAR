@@ -42,7 +42,7 @@ This file contains a class for a matrix for adjacency history
 Created the: 30-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -156,7 +156,7 @@ protected:
 	vector < pair<int,int> > rootList;
 	bool rootComputed;
 
-	void backtrackAux( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop , double c1proba , int Root1, int Root2);
+	void backtrackAux( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop , double c1proba , int Root1, int Root2 , bool doNBBT = true);
 
 
 	bool isImpossibleCase(vector<AdjSolution> aSolC1, vector<AdjSolution> aSolC0);
@@ -529,7 +529,7 @@ public:
 	void printC1();
 	void printMe();
 
-	void backtrack( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop = true, double c1proba = 0.5 );
+	void backtrack( vector< AdjTree *> * AdjacencyTrees, bool stochastic, bool alwaysGainAtTop = true, double c1proba = 0.5 , bool doNBBT = true);
 
 	///////////////WMODIF
 	bool getRootMatrix(int id1, int id2);

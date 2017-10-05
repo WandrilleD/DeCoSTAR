@@ -38,7 +38,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -1768,14 +1768,15 @@ Takes:
  	- bool &overflow : will be changed to true if there is sign of overflow
  	- alwaysGainAtTop (bool) [default: true]: there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  	- c1proba (double) [default = 0.5]: probability to choose c1 over c0 IF (and only if) they have the same score
+ 	- bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts
 */
-void EquivalenceClass::backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector< AdjTree *> * AdjacencyTrees, bool stochastic,bool &overflow, bool alwaysGainAtTop , double c1proba )
+void EquivalenceClass::backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector< AdjTree *> * AdjacencyTrees, bool stochastic,bool &overflow, bool alwaysGainAtTop , double c1proba , bool doNBBT)
 {
 	//cout << "EquivalenceClass::backtrackAdjMatrix" << endl;
 	if(!iscomputedAdjMatrix())
 		throw Exception("EquivalenceClass::backtrackAdjMatrix : AdjMatrix is not set or computed.");
 
-	Amat->backtrack(AdjacencyTrees,stochastic, alwaysGainAtTop, c1proba);
+	Amat->backtrack(AdjacencyTrees,stochastic, alwaysGainAtTop, c1proba, doNBBT);
 
 
 	if( ( AdjacencyTrees->size() == 0 ) && ( Lnames1.size() > 0 ) )
@@ -1814,8 +1815,10 @@ Takes:
  	- stochastic (bool): true if the backtrack is to be stochastic; false if the backtrack choses the solution with the best score
  	- alwaysGainAtTop (bool) [default: true]: there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  	- c1proba (double) [default = 0.5]: probability to choose c1 over c0 IF (and only if) they have the same score
+ 	- bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts
+ 	- verbose
 */
-void EquivalenceClass::backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop , double c1proba , double verbose)
+void EquivalenceClass::backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop , double c1proba , bool doNBBT, double verbose)
 {
 	if(!iscomputedAdjMatrix())
 		throw Exception("EquivalenceClass::backtrackAdjMatrixForSelf : AdjMatrix is not set or computed.");
@@ -1823,7 +1826,7 @@ void EquivalenceClass::backtrackAdjMatrixForSelf(ReconciledTree * rtree1, Reconc
 
 
 
-	Amat->backtrack(AdjForest, stochastic, alwaysGainAtTop, c1proba);
+	Amat->backtrack(AdjForest, stochastic, alwaysGainAtTop, c1proba, doNBBT);
 	SetAdjForest = true;
 
 	for(unsigned i = 0 ; i < AdjForest->size(); i++)

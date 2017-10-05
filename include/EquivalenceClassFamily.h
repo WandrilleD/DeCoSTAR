@@ -42,7 +42,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 05-10-2017
 by: Wandrille Duchemin
 
 */
@@ -158,9 +158,9 @@ public:
 	void computeAdjMatrix(double WDupCost, double WLossCost, double WHgtCost);
 
 	bool iscomputedAdjMatrix();
-	void backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector < vector< AdjTree *> * > * AdjacencyTreesVector, bool stochastic, int &overflowed,  bool alwaysGainAtTop = true, double c1proba = 0.5); // creates the adj forest
+	void backtrackAdjMatrix(ReconciledTree * rtree1, ReconciledTree * rtree2, vector < vector< AdjTree *> * > * AdjacencyTreesVector, bool stochastic, int &overflowed,  bool alwaysGainAtTop = true, double c1proba = 0.5, bool doNBBT = true); // creates the adj forest
 
-	void backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop = true, double c1proba = 0.5); // creates the adj forest
+	void backtrackAdjMatrixForSelf(ReconciledTree * rtree1, ReconciledTree * rtree2, bool stochastic, bool alwaysGainAtTop = true, double c1proba = 0.5, bool doNBBT = true); // creates the adj forest
 		
 
 	void printMe(bool verbose);
