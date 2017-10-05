@@ -1,6 +1,7 @@
 /*
 Created by: Wandrille Duchemin
 
+
 Last modified the: 01-09-2017
 by: Wandrille Duchemin
 
@@ -1081,7 +1082,7 @@ int main(int args, char ** argv)
                 Rtree1 = GeneFamilyList->at(gfam1)->getRecTree();
                 Rtree2 = GeneFamilyList->at(gfam2)->getRecTree();
 
-                pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies;     
+                pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies;
 
                 if( iter == 0 )
                 { //else it's useless, because it has been done.
@@ -1124,7 +1125,6 @@ int main(int args, char ** argv)
                                                     gDoubleParams.find("absence.penalty")->second,
                                                     gBoolParams.find("Loss.aware")->second, FamiliesFreeAdjacencies,
                                                     gDoubleParams.find("adjacency.score.log.base")->second) ;
-
 
                     if(VerboseLevel > 1)
                         cout << "Matrix computed" << endl;
@@ -1186,8 +1186,6 @@ int main(int args, char ** argv)
                         AdjSpeList = ECF -> getAdjSpeList();        
                     }
                 }
-
-
 
                 if( CompMatrix == true)
                 { // if the matrix was computed here.

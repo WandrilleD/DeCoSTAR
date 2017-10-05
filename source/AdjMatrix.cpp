@@ -3111,4 +3111,5 @@ bool AdjMatrix::hasFreeAdj(int node1, int node2)
 
 	return false;//No loss aware, no free adjacencies.
 	
+
 }
