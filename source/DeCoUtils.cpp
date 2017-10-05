@@ -39,7 +39,7 @@ This file contains various functions used by DeCo
 Created the: 02-03-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 24-07-2017
 by: Wandrille Duchemin
 
 */
@@ -3844,10 +3844,12 @@ description: map <int ECF, pair < vector < pair <node of fam1, node of fam2>, bo
 
 Takes:
 	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph: A map containing the Adjacencies computed so far
-	-  map < int, ReconciledTree * > loadedRecTrees: map containing all the reconciled gene trees
 	- vector <GeneFamily *> * GeneFamilyList : a vector containing the gene families
+	- map < pair<int, int> ,pair < vector < pair <string, string> >, string > > : vector that will be filled with of the free adjacencies for each of the pair of families involved, and in which ECFams this adjacency is happening.
+
 Returns:
-	- map < pair<int, int> ,pair < vector < pair <string, string> >, string > > : Contains a vector of the free adjacencies for each of the pair of families involved, and in which ECFams this adjacency is happening.
+	void
+
 */
 void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
 						vector <GeneFamily *> * GeneFamilyList,
@@ -4053,7 +4055,7 @@ void saveECFsampleToTmpFile(EquivalenceClassFamily * ECF, ECFsample * sample,
 							 double GainCost ,  double BreakCost , bool Init, bool Finish)
 {
 	string ECFfileName = ECF -> getTmpFile();
-	
+	cout << "saving stuff in " << ECFfileName <<endl;
 	if( Init == true)
 	{
 		ifstream File((ECFfileName).c_str());
@@ -4100,6 +4102,8 @@ void copyTmpToFile(string filename, EquivalenceClassFamily * ECF)
 		cerr << "Temporary file: " << ECF -> getTmpFile() << " could not be opened." << endl;
 	}
 	
+	cout << "removing " << ECF -> getTmpFile() <<endl;
+
 	int status = remove((ECF -> getTmpFile()).c_str());//deleting the tmp file.
 	if(status == -1){
 		cout << "File removal of " << ECF -> getTmpFile() << " did not work. You might have to proceed manually."<<endl;
@@ -4227,8 +4231,8 @@ Takes:
 Returns:
 	- bool : if the adjacency is already present or not in the object.
 */
-bool doesItExist( pair < vector < pair <string, string> >, bool > FamFreeAdjacencies,
-					pair < string, string > potentialFreeAdjacency) 
+bool doesItExist( pair < vector < pair <string, string> >, bool > &FamFreeAdjacencies,
+					pair < string, string > &potentialFreeAdjacency) 
 {
 	for(unsigned i = 0; i < FamFreeAdjacencies.first.size() ; i++){
 		//cout << FamFreeAdjacencies.first[i].first << " and " << potentialFreeAdjacency.first <<endl;
@@ -4242,3 +4246,393 @@ bool doesItExist( pair < vector < pair <string, string> >, bool > FamFreeAdjacen
 	//if we didn't find a pair that matched
 	return false;
 }
+
+
+
+//Wandrille modification of LossAware
+/*
+
+Takes:
+	- map <int , map < string, vector < pair<string, int > > > > & AdjGraph: A map containing the Adjacencies computed so far
+	- vector <GeneFamily *> * GeneFamilyList : a vector containing the gene families
+    - vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups : to be filled. contains groups of nodes among which free adjacencies must be detected
+
+*/
+void FindPotentialFreeAdjacencyGroups(map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+                              vector <GeneFamily *> * GeneFamilyList,
+                              vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups )
+{
+
+	for(unsigned GeneFamilyId = 0; GeneFamilyId !=  GeneFamilyList->size() ; GeneFamilyId++)
+	{
+		cout <<"FindPotentialFreeAdjacencyGroups : geneFamily " << GeneFamilyId << endl;
+
+
+		ReconciledTree * MyRecTree = GeneFamilyList->at(GeneFamilyId)->getRecTree();
+
+		vector< Node * > NodesVector = MyRecTree->getNodes();
+		vector< Node * >::iterator nodeIterator;
+
+		for (nodeIterator = NodesVector.begin() ; nodeIterator != NodesVector.end() ; ++nodeIterator)
+		{
+		
+
+			if( MyRecTree->isLoss( MyRecTree->getNodeEvent( *nodeIterator ) ) )
+			{// the node corresponds to a loss!
+
+				cout << " found Loss node " <<  (*nodeIterator)->getId() << endl;
+
+				
+				Node * Parent = (*nodeIterator)->getFather();
+
+				if( ! MyRecTree->isSpeciation( MyRecTree->getNodeEvent( Parent ) ) )
+				{ // I verify that the parent if a speciation and not a speciationOut
+					continue; // not a speciation --> go to the next loss
+				}
+
+
+				int ParentId      = Parent->getId();
+				int ParentSpecies = MyRecTree->getNodeSpecies(Parent);
+				int LossSpecies   = MyRecTree->getNodeSpecies( *nodeIterator );
+				
+				//this name will help us find the parent in the adjGraph... this ought to change at some point.
+				string ParentStr = IntIdsToStringId( GeneFamilyId , ParentId );
+
+				
+				cout << "  loss parent str : " << ParentStr << endl;
+
+				
+				int nbNeighbors =  AdjGraph[ ParentSpecies ][ ParentStr ].size();
+				
+				if(nbNeighbors >= 2)
+				{ // we only test if the node has at least 2 neighbours.
+					vector < pair< int , int > > NodeCandidates;
+					
+
+					for(unsigned j = 0; j < nbNeighbors ; j++) 
+					{// for each neighbours of the parent of the loss, we look if their child that is is in the same species as the loss is itself a loss or not. If it is a loss, then we follow to its neighbour, and so on, and so forth
+						
+						pair< int , int > IntIds = StringIdToIntIds( AdjGraph[ ParentSpecies ][ ParentStr ][j].first );
+
+						int currFam = IntIds.first;
+						int currNode = IntIds.second;
+						
+						ReconciledTree * currRecTree = GeneFamilyList->at(currFam)->getRecTree();
+						
+						vector <int> currChildren = currRecTree->getSonsId(currNode);
+
+
+						int free_node;
+						bool FoundCandidate = false;//could change the default.
+						
+						for( unsigned k = 0 ; k < currChildren.size() ; k++  )
+						{
+							Node * childCurrentNode =  currRecTree->getNode( currChildren[k] ) ;
+
+							if( currRecTree->getNodeSpecies( childCurrentNode ) == LossSpecies )
+							{ // this child is of the species where the loss occured
+								if( currRecTree->isLoss( currRecTree->getNodeEvent( childCurrentNode ) ) )
+								{ // this child is also a loss
+
+									pair <int, int> candidateNode;
+									candidateNode = FindGroupLoss(ParentId, GeneFamilyId, LossSpecies, ParentSpecies, 
+																	currNode, currFam, AdjGraph, GeneFamilyList); // using Adelme's function. This may change as it does not have a memory larger than 1
+									
+									if(candidateNode.first != -1)
+									{
+										currFam = candidateNode.first;
+										currRecTree = GeneFamilyList -> at(currFam) -> getRecTree();
+										free_node = candidateNode.second;
+										FoundCandidate = true;
+										//cout << "Found a candidate not directly neighbor to the loss"<<endl;
+									}
+
+								}
+								else
+								{ // this child is not a loss -> it is a viale candidate
+									free_node = currChildren[k];
+									FoundCandidate = true;
+								}
+								break; // break in any case, because we've found the child we were looking for.
+							}
+						}
+					
+						if(FoundCandidate)
+						{
+							NodeCandidates.push_back( make_pair(currFam , free_node) );
+						}
+					}
+					
+					// we've looked at all the children of the loss's parent
+					
+					if(NodeCandidates.size() > 1)
+					{//we can't really give a free adjacency between one node, or zeno node.
+						PotentialFreeAdjacencyGroups.push_back( NodeCandidates );
+					}
+					
+				}
+
+			}// else, nothing we are only correcting losses.
+			
+		}//for loop on nodes of a family.
+		
+		
+		
+	}//for loop on gene families
+
+}
+
+/*
+Takes:
+	- vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups : to be filled. contains groups of nodes among which free adjacencies must be detected
+    - map< int , map < int, int > > & GfamsToECF : key1: gfam1 ; key2 gfam2 ; value: associated ECF id
+    - map< int ,  map< int , map< int , vector < int > > > >  MapAdjsToTest
+	    // key1 : ECF id
+        // key2 : nodeid1
+        // key3 : nodeid2
+        // value: vector of index of groups of nodes in PotentialFreeAdjacencyGroups that concern this adjacency
+
+
+*/
+void FillMapsOfAdjToTest( vector < vector< pair< int ,  int > > > & PotentialFreeAdjacencyGroups, 
+                        map< int , map < int, int > > & GfamsToECF,
+                        map< int ,  map< int , map< int , vector < int > > > > & MapAdjsToTest
+                              )
+{
+	int PFit;
+    for( PFit = 0 ; PFit <  PotentialFreeAdjacencyGroups.size() ; PFit++ )
+    {
+		int gfam1;
+		int gfam2;
+		int nodeId1;
+		int nodeId2;
+
+		int gfamA;
+		int gfamB;
+		int nodeIdA;
+		int nodeIdB;
+
+
+        for( unsigned PFit1 = 0 ; PFit1 <  ( PotentialFreeAdjacencyGroups[PFit].size() - 1 ) ; PFit1++)
+        {
+             gfamA = PotentialFreeAdjacencyGroups[PFit][PFit1].first ;
+             nodeIdA = PotentialFreeAdjacencyGroups[PFit][PFit1].second ;
+
+	        for( unsigned PFit2 = (PFit1+1) ; PFit2 <  PotentialFreeAdjacencyGroups[PFit].size() ; PFit2++)
+	        {
+	            gfamB = PotentialFreeAdjacencyGroups[PFit][PFit2].first ;
+				nodeIdB = PotentialFreeAdjacencyGroups[PFit][PFit2].second ;
+
+				//ECFs are organized in such a way that gfam1 is always < to gfam2 , so I reproduce this here
+				if(gfamA > gfamB)
+				{
+					gfam1 = gfamB;
+					gfam2 = gfamA;
+
+					nodeId1 = nodeIdB;
+					nodeId2 = nodeIdA;
+				}
+				else
+				{
+					gfam1 = gfamA;
+					gfam2 = gfamB;
+
+					nodeId1 = nodeIdA;
+					nodeId2 = nodeIdB;
+				}
+
+				//cout << "FillMapsOfAdjToTest " <<  gfam1 << "|" << nodeId1 << " " << gfam2 << "|" << nodeId2 << endl;
+
+				//finding the correct ECF
+				int ECFid = -1;
+
+				map< int , map < int, int > >::iterator it = GfamsToECF.find( gfam1 );
+				if(it != GfamsToECF.end() ) // searching for gfam1
+				{
+					map < int, int >::iterator it2 = it->second.find( gfam2 );
+					if(it2 != it->second.end() ) // searching for gfam 2
+					{
+						//ECF found, we note the id
+						ECFid = it2->second;
+					}
+				}
+
+				//cout << ECFid << "-" << nodeId1 << "-" << nodeId2 << " -> " << PFit << endl;
+				if( ECFid != -1 ) //if we found the ECF
+				{
+
+
+					MapAdjsToTest[ ECFid ][ nodeId1 ][ nodeId2 ].push_back( PFit ) ;
+
+					
+				}// if the ECF was not found, then the adjacency cannot exist
+
+
+	        }
+
+        }
+
+    }
+
+    map< int ,  map< int , map< int , vector < int > > > >::iterator it;
+    for(it = MapAdjsToTest.begin() ; it != MapAdjsToTest.end() ; ++it)
+    {
+    	cout << "ECF "<<it->first<< " : " <<endl;
+    	map< int , map< int , vector < int > > >::iterator it2;
+    	for( it2 = it->second.begin() ; it2 != it->second.end() ; ++it2 )
+    	{
+    		for(map< int , vector < int > >::iterator it3 = it2->second.begin() ; it3 != it2->second.end() ; ++it3 )
+    		{
+    			cout << " " << it2->first << "-" << it3->first << " : ";
+    			for(unsigned i = 0 ; i < it3->second.size() ; i++)
+    				cout << it3->second.at(i) << " " ;
+    			cout << endl;
+    		}
+    	}
+    }
+
+
+
+}
+
+
+/*
+Takes:
+	- string id :  gfam|node type of id
+
+Returns:
+	( pair< int, int >  ) : first int is gfam id, second is node id
+*/
+pair< int, int > StringIdToIntIds( string id )
+{
+	stringstream idStream(id);
+	
+	string segment;
+	vector <string> seglist;
+	
+	while( getline(idStream, segment, '|') )
+	{
+	   seglist.push_back(segment);
+	}
+	int currFam = atoi(seglist[0].c_str());
+	int currNode = atoi(seglist[1].c_str());
+	
+	return pair <int,int>(currFam,currNode) ; 
+}
+
+
+/*
+Takes:
+	- int gfam : id of the gene family
+	- int node : id of the node
+
+Returns:
+	( string )  gfam|node type of id
+*/
+string IntIdsToStringId( int gfam , int node )
+{
+	string strId = boost::lexical_cast<std::string>( gfam ) + "|" + boost::lexical_cast<std::string>( node );
+	
+	return strId ;
+}
+
+
+
+
+
+/*
+* @arg EquivalenceClassFamily * ECF : pointer the the ECF whose trees we want to write
+* @arg bool gainAtRoot : wether there is automatically a gain at the root of the trees or not
+* @arg bool VERBOSE
+- ReconciledTree * Rtree1 [default = NULL] : reocnclied tree. used to annotate leaves node ids.
+- ReconciledTree * Rtree2 [default = NULL] : reocnclied tree. used to annotate leaves node ids.
+
+Returns : 
+	(bool) : true if not problem was encounted, false otherwise
+*/
+bool LoadECFamTrees(EquivalenceClassFamily * ECF, bool gainAtRoot, bool VERBOSE, ReconciledTree * Rtree1, ReconciledTree * Rtree2)
+{
+
+
+    string fileName = ECF->getTmpFile();
+
+    //prefix + "EqClass_" + static_cast<ostringstream*>( &(ostringstream() << g1) )->str() + "-" + static_cast<ostringstream*>( &(ostringstream() << g2) )->str() ;
+
+   ifstream fileStream(fileName.c_str());
+    
+    if( !fileStream.is_open() ) 
+    {
+        cerr << "Could not open adjacency tree file : "<< fileName  <<endl;
+
+        return false;
+    }
+
+    string line;
+    getline( fileStream, line );
+
+    vector <AdjTree * > * Aforest = NULL;
+
+
+
+    int fam1 = ECF->getGfamily1();
+    int fam2 = ECF->getGfamily2();
+
+
+
+    while( !fileStream.eof() ) 
+    {
+
+        
+        if( line == "" ) 
+        {
+                // ignore blank lines
+        }
+        else
+        {
+
+            map <string, string> * properties = new map <string,string>;
+            string * value = new string(""); 
+            string Tname = InterpretLineXML(line,properties,value);
+
+
+            if(Tname.compare("/EquivalenceClassFamily") == 0)
+            {
+                ECF->setAdjForest( 0 , Aforest );
+                if(VERBOSE)
+                    cout << "read adj forest for ecf between " << ECF->getGfamily1() << "-" << ECF->getGfamily2() << endl;
+
+                break; // because I read only one ECF 
+            }
+            else if(Tname.compare("EquivalenceClassFamily") == 0)
+            {
+                Aforest = new vector <AdjTree * > ;
+                char * pEnd;
+
+                if(VERBOSE)
+                    cout << "reading ecf " << fam1  << "-" << fam2 << endl;
+
+            }
+            else if(Tname.compare("clade") == 0) //--> line signing the beginning of a tree
+            {
+                Aforest->push_back( new AdjTree(fileStream, gainAtRoot, fam1, fam2, VERBOSE) );
+                if( (Rtree1!=NULL)&&(Rtree2!=NULL) )
+                	Aforest->back()->refine( Rtree1, Rtree2 );
+                if(VERBOSE)
+                    cout << "ADDED A TREE"<<endl;
+            }
+
+            delete properties;
+            delete value;
+        }
+        getline( fileStream, line );
+        //cout << line << endl;
+    }
+
+    fileStream.close();
+    return true;
+
+
+
+
+}
+

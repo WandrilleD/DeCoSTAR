@@ -39,7 +39,7 @@ This file contains a class for reconciled trees
 Created the: 26-10-2015
 by: Wandrille Duchemin
 
-Last modified the: 08-09-2016
+Last modified the: 20-07-2017
 by: Wandrille Duchemin
 
 */
@@ -1577,6 +1577,58 @@ int ReconciledTree::getNodeCladeNum(int nodeid) // retrieves the clade id of the
 
 	return dynamic_cast<BppInteger *> (getNodeProperty(nodeid, clnum))->getValue();
 }
+
+
+
+
+
+
+
+
+int ReconciledTree::getNodeSpecies(Node * n)
+{
+	return dynamic_cast<BppInteger * > (n->getNodeProperty(spe))->getValue();
+}
+int ReconciledTree::getNodePostOrder(Node * n)
+{
+	return dynamic_cast<BppInteger * > (n->getNodeProperty(porder))->getValue();
+}
+int ReconciledTree::getNodeTimeSlice(Node * n)
+{
+	if(n->hasNodeProperty(ts))
+		return dynamic_cast<BppInteger * > (n->getNodeProperty(ts))->getValue();
+
+	return getNodeUpperBoundaryTS( n );
+}
+int ReconciledTree::getNodeUpperBoundaryTS(Node * n)
+{
+	return dynamic_cast<BppInteger * > (n->getNodeProperty(uts))->getValue();
+}
+int ReconciledTree::getNodeLowerBoundaryTS(Node * n)
+{
+	return dynamic_cast<BppInteger * > (n->getNodeProperty(lts))->getValue();
+}
+int ReconciledTree::getNodeEvent(Node * n)
+{
+	return dynamic_cast<BppInteger * > (n->getNodeProperty(ev))->getValue();
+}
+int ReconciledTree::getNodeCladeNum(Node * n)
+{
+	return dynamic_cast<BppInteger * > (n->getNodeProperty(clnum))->getValue();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //setter of node properties
 void ReconciledTree::setNodeSpecies(int nodeid, int speciesid) // set the specified node species.

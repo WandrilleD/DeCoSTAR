@@ -42,7 +42,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -200,6 +200,15 @@ public:
 
 	};
 
+	void dumpAdjForest()
+	{
+		for(unsigned i = 0; i  < getNbEqClasses();i++)
+		{
+			EclassList[0].dumpAdjForest();
+		}
+
+	};
+
 	vector <int> getNumberScoreWithAbsLog10Above(double threshold = 200); 
 
 
@@ -225,6 +234,9 @@ public:
 	string getTmpFile() const;
 	// end LA modif
 
+	bool hasAdj(int nid1 , int nid2); // only wirks if trees are set.
+
+	bool hasAdjInMap(string NodeIdStr1 , string NodeIdStr2 ); // only wirks if adjMap is set.
 
 };
 

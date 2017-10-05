@@ -42,7 +42,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 17-07-2017
+Last modified the: 08-08-2017
 by: Wandrille Duchemin
 
 */
@@ -304,10 +304,26 @@ public:
 		}
 	};
 
+	void dumpAdjForest()
+	{
+		if(SetAdjForest)
+		{
+			for(unsigned i = 0 ; i <  AdjForest->size() ; i++)
+				delete AdjForest->at(i);
+
+			AdjForest->clear();
+			delete AdjForest;
+
+			SetAdjForest = false;
+		}
+	};	
+
 
 	int getNumberScoreWithAbsLog10Above(double threshold = 200); 
 
 	void setSetAdjMatrix(bool isSet){SetAdjMatrix = isSet;} // for loss aware
+
+	bool hasAdj(int nid1 , int nid2); // only wirks if trees are set.
 
 };
 

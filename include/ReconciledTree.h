@@ -42,7 +42,7 @@ This file contains a class for reconciled trees
 Created the: 26-10-2015
 by: Wandrille Duchemin
 
-Last modified the: 08-09-2016
+Last modified the: 20-07-2017
 by: Wandrille Duchemin
 
 */
@@ -253,6 +253,17 @@ public:
 	int getNodeLowerBoundaryTS(int nodeid);
 	int getNodeEvent(int nodeid); // retrieves the eventid of the node. eventid is an int corresponding to a reconciliation event
 	int getNodeCladeNum(int nodeid); // retrieves the clade id of the node. Clade id is a concept used for CCPs and will typically be defined in a reference CladesAndTripartitions instance
+
+	//getter of node properties
+	int getNodeSpecies(Node * n); // retrieve the specified node species. 
+	int getNodePostOrder(Node * n);
+	int getNodeTimeSlice(Node * n);
+	int getNodeUpperBoundaryTS(Node * n);
+	int getNodeLowerBoundaryTS(Node * n);
+	int getNodeEvent(Node * n); // retrieves the eventid of the node. eventid is an int corresponding to a reconciliation event
+	int getNodeCladeNum(Node * n); // retrieves the clade id of the node. Clade id is a concept used for CCPs and will typically be defined in a reference CladesAndTripartitions instance
+
+
 
 	//setter of node properties
 	void setNodeSpecies(int nodeid, int speciesid); // set the specified node species.
