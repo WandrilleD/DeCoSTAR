@@ -278,12 +278,6 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
                                     map < int ,pair < vector < pair <string, string> >, bool > > & FreeAdjacencies); // !! deprecated !! , use fillUpFreeAdjacencies instead
 
 
-pair < int, int> FindGroupLoss(int OrNode, int OrFam, 
-                                                int spe_loss, int father_spe,
-                                                int Node, int Fam, 
-                                                map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
-                                                vector <GeneFamily *> * GeneFamilyList);
-
 void saveECFsampleToTmpFile(EquivalenceClassFamily * ECF, ECFsample * sample,
                                            int sampleIndex, bool newick,bool hideLosses,  
                                            double GainCost ,  double BreakCost , bool Init, bool Finish);
@@ -323,5 +317,11 @@ void fillUpFreeAdjacencies( map < int ,pair < vector < pair <string, string> >, 
                                           vector <EquivalenceClassFamily> * ECFams, bool alwaysAgain,
                                           int verboseLevel );
 
+
+pair < int, int> FindGroupLoss(int OrNode, int OrFam, 
+                                int spe_loss, int parent_spe,
+                                int NodeId, int Fam,
+                               map <int , map < string, vector < pair<string, int > > > > & AdjGraph,
+                               vector <GeneFamily *> * GeneFamilyList);
 
 #endif
