@@ -74,7 +74,7 @@ void DeCoOutputManager::WritePhyloXMLRecEvent(ofstream& OUT, ReconciledTree * Rt
 	if(Rtree->isNull(event)) // if the event is a Null event it won't be written
 		return;
 
-//	cout << nodeid << " "<< indent_level << endl;
+	//	cout << nodeid << " "<< indent_level << endl;
 
 	beginLine(OUT,indent_level);
 	OUT << "<";
@@ -271,7 +271,7 @@ void DeCoOutputManager::WritePhyloXMLAdjEvent(ofstream& OUT, AdjTree * Atree, in
 	if(Atree->isNull(event)) // if the event is a Null event it won't be written
 		return;
 
-//	cout << nodeid << " "<< indent_level << endl;
+	//	cout << nodeid << " "<< indent_level << endl;
 	
 	bool coevent = Atree->getNodeCoEventStatus(nodeid);
 	
