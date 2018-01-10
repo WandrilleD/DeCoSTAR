@@ -42,7 +42,7 @@ This file contains a class contaning all equivalence classes between two familie
 Created the: 26-02-2016
 by: Wandrille Duchemin
 
-Last modified the: 05-10-2017
+Last modified the: 10-01-2018
 by: Wandrille Duchemin
 
 */
@@ -152,7 +152,7 @@ public:
 										double Gcost, double Bcost, ReconciledTree * rtree1, ReconciledTree * rtree2, 
 										bool VERBOSE, bool boltzmann ,
 										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-										double temp = 1 , double absencePenalty = -1, double adjScoreLogBase =10000);
+										double temp = 1 , double absencePenalty = -1, double adjScoreLogBase =10000, bool interactionMode = false);
 
 	void computeAdjMatrix();
 	void computeAdjMatrix(double WDupCost, double WLossCost, double WHgtCost);

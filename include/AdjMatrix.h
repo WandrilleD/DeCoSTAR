@@ -42,7 +42,7 @@ This file contains a class for a matrix for adjacency history
 Created the: 30-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 05-10-2017
+Last modified the: 10-01-2018
 by: Wandrille Duchemin
 
 */
@@ -180,6 +180,8 @@ protected:
 	double bestScore; // best possible score (0 for the DeCo case; 1 for the DeCoBoltzmann case)
 	double defaultScore; // default score for cases that haven't been computed yet ( -1 in both case)
 	double worstAbsenceScore; // worst possible score for an absent adjacency presence( == worstScore unless some option is set at the AdjMatrix creation)
+
+	bool interactionMode;
 
 	map<int,vector<float> > speciesC0C1;
 	map<int, map<string,int> > speGeneAdjNb;
@@ -490,6 +492,10 @@ public:
 
 	void resetMatrix();
 	void partiallyResetMatrix(int id1, int id2);
+
+
+	void setInteractionMode(bool setTo=false){ interactionMode=setTo; }
+	bool getInteractionMode(){return interactionMode;}
 
 	double getC1(int id1, int id2, bool invert = false);
 	double getC0(int id1, int id2, bool invert = false);

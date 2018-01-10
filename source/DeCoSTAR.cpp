@@ -1,7 +1,7 @@
 /*
 Created by: Wandrille Duchemin
 
-Last modified the: 05-10-2017
+Last modified the: 10-01-2018
 by: Wandrille Duchemin
 
 
@@ -67,8 +67,9 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 
-string version = "1.1.1";
-string date = "05/10/17";
+string version = "1.2";
+string date = "10/01/18";
+//1.2 all children adj transmission rules
 //1.1.1 NBBT option to avoid memory hog
 //1.1 loss aware
 //1 -> paper release
@@ -83,7 +84,7 @@ map<string,string> gStringParams; // string, char, and path
 
 
 
-const int gParameterCount = 44;
+const int gParameterCount = 45;
 string const gParameters[gParameterCount][4] = {
 // files
  {"parameter.file", "path", "none", "a file with input parameters" },
@@ -152,8 +153,9 @@ string const gParameters[gParameterCount][4] = {
 
  {"Topology.weight","double","1","weight of the topology in the global score" },
  {"Reconciliation.weight","double","1","weight of the reconciliation in the global score" },
- {"Adjacency.weight","double","1","weight of the adjacency in the global score" }
+ {"Adjacency.weight","double","1","weight of the adjacency in the global score" },
 
+ {"all.children.adj.transmission.rules","bool","false","whether or not adjacencies should be expected to be transmitted to all children in the same species or not"}
  //{"dump.and.load.limit","int","100000","Advanced parameter. Number of gene families above which DeCo will load them from a temp save file in order to save RAM. Minimum of 2."},
 
 };
@@ -176,7 +178,7 @@ void help() {
         if( gParameters[i][3] != "" )
         {
             cout << gParameters[i][0] ;
-            for (size_t j = 0; j <  30 - gParameters[i][0].size() ; j++)
+            for (size_t j = 0; j <  50 - gParameters[i][0].size() ; j++)
                 cout << " ";
             cout << "| [" << gParameters[i][1] << ","
                  << gParameters[i][2] << "] " << gParameters[i][3] << endl;
@@ -518,7 +520,7 @@ void printParameters()
     for (map<string,bool>::iterator it=gBoolParams.begin(); it!=gBoolParams.end(); ++it)
     {
         cout << it->first ;
-        for( unsigned j = 0; j < 30 - it->first.size(); j++)
+        for( unsigned j = 0; j < 50 - it->first.size(); j++)
             cout <<".";
         cout << it->second << endl;
     }
@@ -526,7 +528,7 @@ void printParameters()
     for (map<string,int>::iterator it=gIntParams.begin(); it!=gIntParams.end(); ++it)
     {
         cout << it->first ;
-        for( unsigned j = 0; j < 30 - it->first.size(); j++)
+        for( unsigned j = 0; j < 50 - it->first.size(); j++)
             cout <<".";
         cout << it->second << endl;
     }
@@ -534,7 +536,7 @@ void printParameters()
     for (map<string,double>::iterator it=gDoubleParams.begin(); it!=gDoubleParams.end(); ++it)
     {
         cout << it->first ;
-        for( unsigned j = 0; j < 30 - it->first.size() ; j++)
+        for( unsigned j = 0; j < 50 - it->first.size() ; j++)
             cout <<".";
         cout << it->second << endl;
     }
@@ -542,7 +544,7 @@ void printParameters()
     for (map<string,string>::iterator it=gStringParams.begin(); it!=gStringParams.end(); ++it)
     {
         cout << it->first ;
-        for( unsigned j = 0; j < 30 - it->first.size() ; j++)
+        for( unsigned j = 0; j < 50 - it->first.size() ; j++)
             cout <<".";
         cout << it->second << endl;
     }
@@ -1128,7 +1130,9 @@ int main(int args, char ** argv)
                                                     gDoubleParams.find("boltzmann.temperature")->second,
                                                     gDoubleParams.find("absence.penalty")->second,
                                                     gBoolParams.find("Loss.aware")->second, FamiliesFreeAdjacencies,
-                                                    gDoubleParams.find("adjacency.score.log.base")->second) ;
+                                                    gDoubleParams.find("adjacency.score.log.base")->second,
+                                                    gBoolParams.find("all.children.adj.transmission.rules")->second
+                                                    ) ;
 
 
                     if(VerboseLevel > 1)

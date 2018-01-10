@@ -42,7 +42,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 05-10-2017
+Last modified the: 10-01-2018
 by: Wandrille Duchemin
 
 */
@@ -108,7 +108,7 @@ protected:
 										ReconciledTree * rtree1, ReconciledTree * rtree2,
 										bool VERBOSE, bool boltzmann ,
 										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-										double temp , double absencePenalty, double adjScoreLogBase);
+										double temp , double absencePenalty, double adjScoreLogBase, bool interactionMode);
 
 
 
@@ -269,7 +269,7 @@ public:
 							ReconciledTree * rtree1, ReconciledTree * rtree2,
 							bool VERBOSE, bool boltzmann ,
 							bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-							double temp , double absencePenalty);
+							double temp , double absencePenalty, bool interactionMode = false);
 
 	vector <double> createAdjMatrix(map < string, map <string , double> > &adjacencyScores, 
 							map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
@@ -278,7 +278,7 @@ public:
 							ReconciledTree * rtree1, ReconciledTree * rtree2,
 							bool VERBOSE, bool boltzmann ,
 							bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-							double temp , double absencePenalty, double adjScoreLogBase); // ADseq version of the function
+							double temp , double absencePenalty, double adjScoreLogBase, bool interactionMode = false); // ADseq version of the function
 
 	void computeAdjMatrix();
 	void computeAdjMatrix(double WDupCost, double WLossCost, double WHgtCost);

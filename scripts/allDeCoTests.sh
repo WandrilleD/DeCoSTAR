@@ -17,7 +17,8 @@ echo "--------------------- DeCo with transfer ---------------------"
 bin/DeCoSTAR parameter.file=tests/testDeCo_LT_dated.param.txt
 echo "--------------------- DeCo with transfer and fancy parameters ---------------------"
 bin/DeCoSTAR parameter.file=tests/testDeCoLTfancy.param.txt
-
+echo "--------------------- DeCo with different adjacency transmission rules ------------"
+bin/DeCoSTAR parameter.files=tests/testDeCo.TransmissionAll.param.txt
 
 echo "********************* reconciled trees as input *********************"
 echo "--------------------- DeCo with transfer and reconciled trees ---------------------"

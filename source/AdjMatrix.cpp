@@ -41,7 +41,7 @@ Created the: 30-11-2015
 by: Wandrille Duchemin
 
 
-Last modified the: 05-10-2017
+Last modified the: 10-01-2018
 by: Wandrille Duchemin
 
 */
@@ -1380,6 +1380,8 @@ void AdjMatrix::AdjMatrixAux(map<int,vector<float> > &speciesC0C1, map<int, map<
 
 	Rtree1 = *rtree1;
 	Rtree2 = *rtree2;
+
+	interactionMode=false;
 
 
 	//setting the algebra to the basic one -> most parsimonious
@@ -2869,6 +2871,7 @@ AdjMatrix* AdjMatrix::getClone()
 
 
 	newAmat->setdecoLTalgo(decoLTalgo);
+	newAmat->setInteractionMode(interactionMode);
 
 
 	// setting the C1 and C0 matrix

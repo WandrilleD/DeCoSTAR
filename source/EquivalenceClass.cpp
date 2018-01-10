@@ -38,7 +38,7 @@ This file contains a class for adjacency classes
 Created the: 24-11-2015
 by: Wandrille Duchemin
 
-Last modified the: 05-10-2017
+Last modified the: 10-01-2018
 by: Wandrille Duchemin
 
 */
@@ -1529,7 +1529,7 @@ void EquivalenceClass::createAdjMatrixAux(map<int,vector<float> > &speciesC0C1, 
 										ReconciledTree * rtree1, ReconciledTree * rtree2,
 										bool VERBOSE, bool boltzmann ,
 										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-										double temp , double absencePenalty, double adjScoreLogBase)
+										double temp , double absencePenalty, double adjScoreLogBase, bool interactionMode)
 {
 	int a1 = getAncestor(0);
 	int a2 = getAncestor(1);
@@ -1553,7 +1553,7 @@ void EquivalenceClass::createAdjMatrixAux(map<int,vector<float> > &speciesC0C1, 
 							VERBOSE, boltzmann, temp, absencePenalty, adjScoreLogBase, 
 							getSens1(), getSens2());	
 
-
+	Amat->setInteractionMode(interactionMode);
 
 
 	//cout << "EquivalenceClass::createAdjMatrix from " << rtree1->getNumberOfNodes() << "*" << rtree2->getNumberOfNodes() << " to "<< sub1->getNumberOfNodes() << "*" << sub2->getNumberOfNodes() << endl;
@@ -1592,7 +1592,7 @@ vector <double> EquivalenceClass::createAdjMatrix(map<int,vector<float> > &speci
 										ReconciledTree * rtree1, ReconciledTree * rtree2, 
 										bool VERBOSE, bool boltzmann ,
 										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-										double temp, double absencePenalty )
+										double temp, double absencePenalty , bool interactionMode)
 {
 
 	vector <double> adjacencyScoreVec;
@@ -1604,7 +1604,7 @@ vector <double> EquivalenceClass::createAdjMatrix(map<int,vector<float> > &speci
 	createAdjMatrixAux( speciesC0C1,  speGeneAdjNb, speGeneExtremitiesAdjNb,  adjacencyScoreVec,
 							Gcost,  Bcost, 
 							rtree1, rtree2,
-							VERBOSE, boltzmann ,LossAware, FamiliesFreeAdjacencies, temp , absencePenalty, 10000); //last arg is default adjScoreLogBase (won't be used anyway)
+							VERBOSE, boltzmann ,LossAware, FamiliesFreeAdjacencies, temp , absencePenalty, 10000, interactionMode); //last arg is default adjScoreLogBase (won't be used anyway)
 
 	return adjacencyScoreVec;
 }
@@ -1641,7 +1641,7 @@ vector <double> EquivalenceClass::createAdjMatrix(map < string, map <string , do
 										ReconciledTree * rtree1, ReconciledTree * rtree2, 
 										bool VERBOSE, bool boltzmann ,
 										bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
-										double temp, double absencePenalty, double adjScoreLogBase )
+										double temp, double absencePenalty, double adjScoreLogBase, bool interactionMode )
 {
 
 	vector <double> adjacencyScoreVec;
@@ -1702,7 +1702,7 @@ vector <double> EquivalenceClass::createAdjMatrix(map < string, map <string , do
 							rtree1, rtree2,
 							VERBOSE, boltzmann,
 							LossAware, FamiliesFreeAdjacencies,
-							temp , absencePenalty, adjScoreLogBase);
+							temp , absencePenalty, adjScoreLogBase, interactionMode);
 
 	return adjacencyScoreVec;
 }
