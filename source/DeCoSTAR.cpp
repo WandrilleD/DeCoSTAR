@@ -22,16 +22,16 @@ phylogenies and evolutionary parameters from a dataset according to
 the maximum likelihood principle.
 
 This software is governed by the CeCILL  license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
+abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
+"http://www.cecill.info".
 
 As a counterpart to the access to the source code and  rights to copy,
 modify and redistribute granted by the license, users are provided only
 with a limited warranty  and the software's author,  the holder of the
 economic rights,  and the successive licensors  have only  limited
-liability. 
+liability.
 
 In this respect, the user's attention is drawn to the risks associated
 with loading,  using,  modifying and/or developing or reproducing the
@@ -40,9 +40,9 @@ that may mean  that it is complicated to manipulate,  and  that  also
 therefore means  that it is reserved for developers  and  experienced
 professionals having in-depth computer knowledge. Users are therefore
 encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and,  more generally, to use and operate it in the
+same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
@@ -53,6 +53,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 #include "DeCoUtils.h"
+#include <omp.h>
 #include <unistd.h>
 
 #include <sys/stat.h>
@@ -80,7 +81,7 @@ string date = "10/01/18";
 map<string,bool> gBoolParams;
 map<string,int> gIntParams;
 map<string,double> gDoubleParams;
-map<string,string> gStringParams; // string, char, and path 
+map<string,string> gStringParams; // string, char, and path
 
 
 
@@ -105,7 +106,7 @@ string const gParameters[gParameterCount][4] = {
 
 //reconciliation options
  {"dupli.cost", "double", "2", "cost of a duplication"},
- {"HGT.cost", "double", "3", "cost of an HGT"}, 
+ {"HGT.cost", "double", "3", "cost of an HGT"},
  {"loss.cost", "double", "1", "cost of a loss"},
  {"try.all.amalgamation","bool","true","try all possible amalgamation when reconciling gene trees. Otherwise the best possible tree is used"},
  {"rooted","bool","false","specify that the root of the given trees must be kept"},
@@ -138,7 +139,7 @@ string const gParameters[gParameterCount][4] = {
  {"write.genes","bool","false","write the genes inferred in ancestral and extant species"},
  {"write.adjacency.trees","bool","false","write the inferred adjacency trees."},
 
- {"output.dir", "string", "none", "directory for printed files"}, 
+ {"output.dir", "string", "none", "directory for printed files"},
  {"output.prefix", "string", "none", "a prefix to prepend to all output files."},
 
 
@@ -214,7 +215,7 @@ int mkpath( string path ) // mode_t mode )
     int status = 0;
     char *pp = copypath;
     while( status == 0 && (sp = strchr(pp, '/')) != 0 ) {
-        if (sp != pp) { 
+        if (sp != pp) {
             /* Neither root nor double slash in path */
             *sp = '\0';
             status = do_mkdir(copypath ); //, mode);
@@ -236,7 +237,7 @@ int mkpath( string path ) // mode_t mode )
 /**
  * read input parameters
  */
-void readParameters( 
+void readParameters(
         map<string,string> &params ) ///< input paramsters
 {
     map<string,string>::iterator iterStr;
@@ -244,7 +245,7 @@ void readParameters(
 
     // check for unknown parameters
     map<string,bool> allParams;
-    for( size_t i=0; i<gParameterCount; i++ ) 
+    for( size_t i=0; i<gParameterCount; i++ )
         allParams[gParameters[i][0]] = true;
     for( iterStr = params.begin(); iterStr != params.end(); ++iterStr ) {
         map<string,bool>::iterator iterBool = allParams.find( iterStr->first );
@@ -258,30 +259,30 @@ void readParameters(
 
 
     // check for a parameter file
-    iterStr = params.find( "parameter.file" );  
+    iterStr = params.find( "parameter.file" );
     if( iterStr != params.end() ) {
         map<string,string> fileParams;
         bpp::AttributesTools::getAttributesMapFromFile( iterStr->second,
                                                        fileParams, "=" );
         // add file parameters if not already there
         map<string,string>::iterator fIter;
-        for( fIter=fileParams.begin(); fIter!=fileParams.end(); ++fIter) 
+        for( fIter=fileParams.begin(); fIter!=fileParams.end(); ++fIter)
         {
             iterStr = params.find( fIter->first );
-            if( iterStr == params.end() ) 
+            if( iterStr == params.end() )
                 params[fIter->first] = fIter->second;
         }
 
     }
-        
+
 
     for( size_t i=0; i<gParameterCount; i++ ) {
         string name = gParameters[i][0];
         string type = gParameters[i][1];
         string value;
 
-        // get value 
-        iterStr = params.find( name );  
+        // get value
+        iterStr = params.find( name );
         if( iterStr == params.end() ) {
             if( gParameters[i][1] == "required" ) {
                 problem = true;
@@ -293,7 +294,7 @@ void readParameters(
         }
 
         if( type == "bool" ) {
-            if ((value == "true") 
+            if ((value == "true")
                 || (value == "TRUE")
                 || (value == "t")
                 || (value == "T")
@@ -301,11 +302,11 @@ void readParameters(
                 || (value == "YES")
                 || (value == "y")
                 || (value == "Y")
-                || (value == "1") ) 
+                || (value == "1") )
             {
                 gBoolParams[name] = true;
-            } 
-            else if ((value == "false") 
+            }
+            else if ((value == "false")
                 || (value == "FALSE")
                 || (value == "f")
                 || (value == "F")
@@ -313,12 +314,12 @@ void readParameters(
                 || (value == "NO")
                 || (value == "n")
                 || (value == "N")
-                || (value == "0") ) 
+                || (value == "0") )
             {
                 gBoolParams[name] = false;
             }
             else {
-                cerr << "Invalid boolean value (" << value << ") for " 
+                cerr << "Invalid boolean value (" << value << ") for "
                      << name << endl;
                 problem = true;
             }
@@ -326,7 +327,7 @@ void readParameters(
             gStringParams[name] = value;
         } else if( type == "char" ) {
             if( value.size() != 1 ) {
-                cerr << "Invalid char value (" << value << ") for " 
+                cerr << "Invalid char value (" << value << ") for "
                      << name << endl;
                 problem = true;
             } else {
@@ -348,7 +349,7 @@ void readParameters(
                 } else {
                     gStringParams[name] = value;
                 }
-            } else 
+            } else
                 gStringParams[name] = "none";
         } else {
             cerr << "Found type <" << type << "> for " << name << endl;
@@ -383,7 +384,7 @@ void readParameters(
         if(gBoolParams.find("dated.species.tree")->second)
         {
             cerr << "No transfer : forcing dated.species.tree=false" << endl;
-            gBoolParams["dated.species.tree"] = false;  
+            gBoolParams["dated.species.tree"] = false;
         }
     }
     else // with transfers.
@@ -408,7 +409,7 @@ void readParameters(
         //    cout << "No Boltzmann sampling: forcing nb.sample=1" << endl;
         //    gIntParams["nb.sample"] = 1;
         //}
-    }       
+    }
     else // Boltzmann sampling
     {
     //  if( gBoolParams.find("with.transfer")->second) //no transfer
@@ -419,20 +420,20 @@ void readParameters(
         if( gBoolParams.find("substract.reco.to.adj")->second )
         {
             cerr << "Boltzmann sampling: forcing substract.reco.to.adj=false" << endl;
-            gBoolParams["substract.reco.to.adj"] = false;   
+            gBoolParams["substract.reco.to.adj"] = false;
         }
 
         //if(gBoolParams.find("write.adjacencies")->second )
         //{
         //    cerr << "Boltzmann sampling: forcing write.adjacencies=false" << endl;
-        //    gBoolParams["write.adjacencies"] = false;      
+        //    gBoolParams["write.adjacencies"] = false;
         //}
     }
 
     if( gBoolParams.find("ale")->second && gBoolParams.find("already.reconciled")->second)
     {
         cerr << "already.reconciled : forcing ale=false" << endl;
-        gBoolParams["ale"] = false; 
+        gBoolParams["ale"] = false;
     }
 
     if( gBoolParams.find("rooted")->second)
@@ -442,7 +443,7 @@ void readParameters(
             cerr << "rooted=1 forces try.all.amalgamation=0" << endl;
             gBoolParams["try.all.amalgamation"] = false;
         }
-    }  
+    }
 
 
 
@@ -472,12 +473,12 @@ void readParameters(
         }
 
     // create path prefix for output files
-    if( gStringParams.find("output.prefix")->second != "none" ) 
+    if( gStringParams.find("output.prefix")->second != "none" )
         gPathPrefix = gStringParams.find("output.prefix")->second;
     string outputDir = gStringParams.find("output.dir")->second;
     if( outputDir != "none" ) {
         if( !mkpath( outputDir ) ) {
-            cerr << "ERROR: " << outputDir << " is not a directory." 
+            cerr << "ERROR: " << outputDir << " is not a directory."
                  << endl;
             exit(1);
         }
@@ -553,7 +554,7 @@ void printParameters()
 }
 
 /////////////////////////////////////////////////
-// Main 
+// Main
 /////////////////////////////////////////////////
 
 int main(int args, char ** argv)
@@ -563,15 +564,15 @@ int main(int args, char ** argv)
         help();
         exit(0);
     }
-    
-    try 
+
+    try
     {
         // fill global parameter variables
-        map<string, string> params = 
+        map<string, string> params =
             bpp::AttributesTools::parseOptions(args, argv);
         readParameters( params );
 
-        bool randomtree = false;    
+        bool randomtree = false;
         bool dateAsBootstrap = false; // a bit harsh -> make option?
 
         int VerboseLevel = gIntParams.find("verbose")->second;
@@ -591,10 +592,10 @@ int main(int args, char ** argv)
             cout << endl;
         }
 
-        if( VerboseLevel > 1 ) 
+        if( VerboseLevel > 1 )
             printParameters();
 
-        //if( gBoolParams.find("verbose")->second ) 
+        //if( gBoolParams.find("verbose")->second )
         //    bpp::ApplicationTools::startTimer();
 
         clock_t begin;
@@ -623,7 +624,7 @@ int main(int args, char ** argv)
 
 
         vector<string> geneFiles = readGeneDistributionsFile( gStringParams.find("gene.distribution.file")->second );
-        
+
         vector <GeneFamily *> * GeneFamilyList = new vector <GeneFamily *>;
 
         readGeneDistributions( GeneFamilyList, speciesTree , geneFiles, gBoolParams.find("ale")->second ,  gBoolParams.find("already.reconciled")->second, gStringParams.find("char.sep")->second[0] ,verbose, superverbose , gBoolParams.find("rooted")->second );
@@ -646,7 +647,7 @@ int main(int args, char ** argv)
 
 
         map <string,int> LeafToGFMap = makeLeafToGFMap(GeneFamilyList);
-        
+
         map <string,int> LeafToSpMap;
 
         int nbGfam = GeneFamilyList->size();
@@ -660,7 +661,7 @@ int main(int args, char ** argv)
         ////////////////////////////////////////////////////
 
         // this writes the species tree and add the filename to the file of written filenames
-        //AddToFile(WrittenFileFileName, WriteSpeciestree( speciesTree,  gBoolParams.find("write.newick")->second , gPathPrefix) ); 
+        //AddToFile(WrittenFileFileName, WriteSpeciestree( speciesTree,  gBoolParams.find("write.newick")->second , gPathPrefix) );
         WriteSpeciestree( speciesTree,  gBoolParams.find("write.newick")->second , gPathPrefix, gStringParams.find("char.sep")->second) ;
         if( (gBoolParams.find("write.genes")->second) || (gBoolParams.find("write.adjacencies")->second) )
         {
@@ -679,7 +680,7 @@ int main(int args, char ** argv)
         //write all rec trees in one file
         string recFileName = gPathPrefix;
         string adjTreeFileName = gPathPrefix;
-        
+
         if(( recFileName[ recFileName.size() - 1 ] != '/')&&(recFileName.size() > 0))
         {
             recFileName += ".";
@@ -689,7 +690,7 @@ int main(int args, char ** argv)
         recFileName += "reconciliations";
         adjTreeFileName += "adjacencyTrees";
 
-        if( gBoolParams.find("write.newick")->second ) 
+        if( gBoolParams.find("write.newick")->second )
         {
             recFileName += ".newick" ;
             adjTreeFileName += ".newick" ;
@@ -721,13 +722,13 @@ int main(int args, char ** argv)
         string genesFileName = "";
 
         if(gBoolParams.find("write.genes")->second)
-        { // touching the adjacencies.txt file in order to reset it 
+        { // touching the adjacencies.txt file in order to reset it
             genesFileName = gPathPrefix;
 
             if(( genesFileName[ genesFileName.size() - 1 ] != '/')&&(genesFileName.size() > 0))
                 genesFileName += ".";
             genesFileName += "genes.txt";
-        
+
             ofstream ofs;
             ofs.open(genesFileName.c_str(),ofstream::out );
             ofs.close(); // we close it directly
@@ -749,8 +750,8 @@ int main(int args, char ** argv)
         if(gBoolParams.find("try.all.amalgamation")->second)
             gWeight = gDoubleParams.find("Topology.weight")->second;
 
-        
 
+#pragma omp parallel for
         for(int i = 0; i < GeneFamilyList->size(); i++)
         {
             GeneFamily * Gfamily = GeneFamilyList->at(i);
@@ -759,7 +760,7 @@ int main(int args, char ** argv)
             {
                 if((!gBoolParams.find("try.all.amalgamation")->second) && (!gBoolParams.find("rooted")->second)) // if not all amalgamation are tried, we have to set the gene tree
                     Gfamily->makeUnrootedTree(randomtree);
-    
+
                 Gfamily->makeReconciliation(speciesTree,
                                             gBoolParams.find("with.transfer")->second, gBoolParams.find("with.transfer")->second,  // transfer and transferLoss
                                             gDoubleParams.find("dupli.cost")->second , gDoubleParams.find("HGT.cost")->second, gDoubleParams.find("loss.cost")->second , // costs
@@ -792,16 +793,17 @@ int main(int args, char ** argv)
             /// Writing the Reconciled tree
             /////////////////////////////////
             //string filename = WriteOneGeneFamilyReconciledTree( Gfamily, gBoolParams.find("write.newick")->second , gBoolParams.find("hide.losses.newick")->second, recFilePrefix, i);
-            //AddToFile(WrittenFileFileName, filename ); 
+            //AddToFile(WrittenFileFileName, filename );
+#pragma omp critical
             AddOneGeneFamilyReconciledTreeToFile( Gfamily, gBoolParams.find("write.newick")->second , gBoolParams.find("hide.losses.newick")->second, recFileName, i);
 
 
-            if( gBoolParams.find("write.genes")->second ) // writing 
+            if( gBoolParams.find("write.genes")->second ) // writing
             {
                 WriteGeneOneGF( Gfamily->getRecTree(), i, genesFileName, RPOtoSpNameMap);
                 //cout << "write.genes "<< i << endl;
             }
-                
+
 
             //if(DUMPANDLOAD)
             //{
@@ -885,7 +887,7 @@ int main(int args, char ** argv)
         ////////////////////////////////////////////////////
         /// Putting adjacencies into Equivalence Class
         ////////////////////////////////////////////////////
-        
+
         //cout<<endl<<"Before CreateEquivalenceClassFamilies"<<endl;
 
         // Dictionary that will contain c1 and c0 cost for EXT/EXT case for each species if using ARt-DeCo algorithm
@@ -937,7 +939,7 @@ int main(int args, char ** argv)
 
         speciesChrNb.clear();
         adjacencies.clear();
-        
+
         LeafToGFMap.clear();
         LeafToSpMap.clear();
 
@@ -971,12 +973,12 @@ int main(int args, char ** argv)
 
         string adjFileName;
         if(gBoolParams.find("write.adjacencies")->second)
-        { // touching the adjacencies.txt file in order to reset it 
+        { // touching the adjacencies.txt file in order to reset it
             adjFileName = gPathPrefix;
             if(( adjFileName[ adjFileName.size() - 1 ] != '/')&&(adjFileName.size()>0))
                 adjFileName += ".";
             adjFileName += "adjacencies.txt";
-        
+
             ofstream ofs;
             ofs.open(adjFileName.c_str(),ofstream::out );
             ofs.close(); // we close it directly
@@ -1005,7 +1007,7 @@ int main(int args, char ** argv)
         if(gAdjWeight == 0)
             gAdjWeight = 0.000001; // in order to avoid division by 0
 
-       
+
 
         //NECFsample * AdjTreeSample; <- old way
         ECFsample * AdjTreeSample; // new way
@@ -1014,12 +1016,12 @@ int main(int args, char ** argv)
 
         ReconciledTree * Rtree1;
         ReconciledTree * Rtree2;
-        
+
         int overflowed = 0; // will contain the number of equivalence class (ie. adj matrix) that have a potential overflow
 
         int nbIter =1;//if loss.aware = false, only 1 iteration is needed.
         string TmpFolder; // for Loss.aware + write.adjacency.trees options combined.
-        
+
         if(gBoolParams.find("Loss.aware")->second)
         {
 
@@ -1027,28 +1029,28 @@ int main(int args, char ** argv)
 
             if(VerboseLevel > 1)
                 cout << "Loss awareness with "<< nbIter << " iterations."<< endl;
-            
+
             if(gBoolParams.find("write.adjacency.trees") -> second)
             {// if both loss.aware and write.adj.trees options are on, RAM will die if we save everything in it so we use tmp files instead.
                 TmpFolder = gStringParams.find("output.dir")->second + "/tmp/";
                 int status = mkdir((TmpFolder).c_str(),0777);
-                
+
                 //cout << status <<endl;
                 if(status == -1)
                 {
                     cerr << "ERROR while creating temporary folder " << TmpFolder << " error no : " << errno << endl;
                     exit(1);
                 }
-                
+
             }
 
 
         }
-        
+
         vector <int> countingIter(nbIter);// used to display the number of matrices computed at each iteration.
         vector <double> countingTime(nbIter);
-        
-        
+
+
         int totSample = gIntParams.find("nb.sample")->second ;
         bool stochasticBT = ((gBoolParams.find("use.boltzmann")->second)||(totSample>1));
 
@@ -1056,43 +1058,48 @@ int main(int args, char ** argv)
         //data structures used for loss aware DeCoSTAR.
         map <int , map < string, vector < pair<string, int > > > > AdjGraph;
         map < int ,pair < vector < pair <string, string> >, bool > > FreeAdjacencies;
-        
+
         //variables for timing CPU.
         clock_t begin_iter;
         clock_t end_iter;
         double elapsed_secs_iter;
-        
+
 
         for(int iter = 0; iter != nbIter; iter++)
         {
 
             begin_iter = clock();
-            
+
             if(gBoolParams.find("Loss.aware")->second && VerboseLevel > 1)
                 cout << "this is iteration "<< iter +1 << " over " << nbIter<<endl;
 
             int currCount = 0; //used to display the number of matrices computed at each iteration.
 
 
-            int actualIndex = ECFams->size() - 1;
-
-            while(actualIndex>-1)
+//            int actualIndex = ECFams->size() - 1;
+#pragma omp parallel for schedule(static) ordered
+            for (int actualIndex = ECFams->size() - 1 ; actualIndex >= 0 ; actualIndex-- )
+//            while(actualIndex>-1)
             {
 
                 EquivalenceClassFamily * ECF = &ECFams->at(actualIndex);
-            
-                int gfam1 = ECF->getGfamily1();
-                int gfam2 = ECF->getGfamily2();
-                
-                    
+                int gfam1;
+                int gfam2;
+#pragma omp ordered
+                gfam1 = ECF->getGfamily1();
+#pragma omp ordered
+                gfam2 = ECF->getGfamily2();
+
+#pragma omp ordered
+{
                 Rtree1 = GeneFamilyList->at(gfam1)->getRecTree();
                 Rtree2 = GeneFamilyList->at(gfam2)->getRecTree();
-
-                pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies;     
-
+}
+                pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies;
+#pragma omp ordered
                 if( iter == 0 )
                 { //else it's useless, because it has been done.
-                    ECF->refine(Rtree1, Rtree2, gBoolParams.find("all.pair.equivalence.class")->second ,gBoolParams.find("with.transfer")->second , superverbose); 
+                    ECF->refine(Rtree1, Rtree2, gBoolParams.find("all.pair.equivalence.class")->second ,gBoolParams.find("with.transfer")->second , superverbose);
                 }
                 else if(gBoolParams.find("Loss.aware")->second)
                 {
@@ -1100,7 +1107,7 @@ int main(int args, char ** argv)
                     //Getting the free adjacency vectors of interest for the pair of the current families
                     FreeAdjacencies[actualIndex].second = true;//either it already is computed or it's going to be computed.
                 }
-                
+
                 bool CompMatrix = false; // whether or not this matrix have to be recomputed too
 
                 if( (iter == 0) || (iter > 0 && FamiliesFreeAdjacencies.first.size() > 0 && FamiliesFreeAdjacencies.second == false))
@@ -1109,15 +1116,15 @@ int main(int args, char ** argv)
                 }
 
                 vector < pair < pair<string, string> , double > > scoreAssociations;
-                
+
                 if( CompMatrix )
                 {
                     if(VerboseLevel > 1)
                         cout << "Adjacency matrix computation for the Equivalence class family " << actualIndex << endl;
                     if(VerboseLevel > 2)
                         cout << "GeneFam 1: " << gfam1 << " GeneFam 2: " << gfam2 << endl;
-                        
-                    scoreAssociations = ComputeOneEquivalenceClassFamily(ECF, Rtree1, Rtree2, 
+
+                    scoreAssociations = ComputeOneEquivalenceClassFamily(ECF, Rtree1, Rtree2,
                                                     adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
                                                     gDoubleParams.find("AGain.cost")->second,
                                                     gDoubleParams.find("ABreak.cost")->second,
@@ -1137,7 +1144,7 @@ int main(int args, char ** argv)
 
                     if(VerboseLevel > 1)
                         cout << "Matrix computed" << endl;
-                    
+
                     currCount++;
                 }
                 else
@@ -1145,7 +1152,7 @@ int main(int args, char ** argv)
                     //else there is no change from a previous run, and scoreAssociations has been computed and save previously.
                     scoreAssociations = ECF -> getScoreA();
                 }
-                
+
                 if(gBoolParams.find("use.boltzmann")->second)
                 { // checking if any score has its absolute log10 above 200 (so the score is either < 1e-200 or > 1e200) is order to sniff out potential overflows
                     double threshold = 200;
@@ -1160,12 +1167,13 @@ int main(int args, char ** argv)
                     }
                 }
 
-                    
+
                 // data structure used if we want to write adjs
                 map <string, map <string, int> > AdjIndexMap;
                 vector < double > AdjInScoreList;
                 vector < double > AdjOutScoreList;
                 vector < int > AdjSpeList;
+#pragma omp ordered
                 if(gBoolParams.find("write.adjacencies")->second)
                 {
                     if(CompMatrix == true) // filling the different map
@@ -1192,7 +1200,7 @@ int main(int args, char ** argv)
                         AdjIndexMap = ECF -> getAdjIndexMap();
                         AdjInScoreList = ECF -> getAdjInScoreList();
                         AdjOutScoreList = ECF -> getAdjOutScoreList();
-                        AdjSpeList = ECF -> getAdjSpeList();        
+                        AdjSpeList = ECF -> getAdjSpeList();
                     }
                 }
 
@@ -1202,18 +1210,18 @@ int main(int args, char ** argv)
                 { // if the matrix was computed here.
                     for(unsigned sampleIndex = 1 ; sampleIndex <= totSample; sampleIndex++ ) // for each sample to do
                     {
-                        
+
                         AdjTreeSample = new ECFsample();// new
-                    
-                        backtrackOnetimeOneEquivalenceClassFamily(AdjTreeSample, ECF, GeneFamilyList , 
+
+                        backtrackOnetimeOneEquivalenceClassFamily(AdjTreeSample, ECF, GeneFamilyList ,
                                                             stochasticBT,
                                                             verbose, superverbose,
                                                             gBoolParams.find("always.AGain")->second , gDoubleParams.find("C1.Advantage")->second, overflowed , gBoolParams.find("count.number.backtracks")->second);
-                        
-                                                
+
+
                         if(VerboseLevel > 1)
                             cout << sampleIndex << "/" << totSample << "\r";
-                        
+
                         bool init = false;
                         bool finish = false;
 
@@ -1222,16 +1230,17 @@ int main(int args, char ** argv)
 
                         if(sampleIndex == totSample)
                             finish = true;
-                        
+
+#pragma omp ordered
                         if(gBoolParams.find("write.adjacency.trees")->second)
                         {
-                            
+
                             if(iter == (nbIter - 1))// if it's the last iteration and matrice has been computed.
                             {
                                 AddECFsampleToFile(adjTreeFileName, ECF, AdjTreeSample,
-                                               sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second, 
+                                               sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second,
                                                gDoubleParams.find("AGain.cost")->second,
-                                               gDoubleParams.find("ABreak.cost")->second, 
+                                               gDoubleParams.find("ABreak.cost")->second,
                                                init, finish);
                                 if(gBoolParams.find("Loss.aware") ->second && finish == true)// if loss.aware option is on, tmp file that was previously filled has to be deleted.
                                 {
@@ -1247,14 +1256,14 @@ int main(int args, char ** argv)
                                 // not the last iteration. save AdjTree to tmp file.
                                 if(init == true) // first sample -> setting the file
                                     ECF -> setTmpFile(TmpFolder, gStringParams.find("output.prefix")->second, actualIndex);
-                                
+
                                 saveECFsampleToTmpFile(ECF, AdjTreeSample,
-                                            sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second, 
+                                            sampleIndex, gBoolParams.find("write.newick")->second, gBoolParams.find("hide.losses.newick")->second,
                                             gDoubleParams.find("AGain.cost")->second,
-                                            gDoubleParams.find("ABreak.cost")->second, 
+                                            gDoubleParams.find("ABreak.cost")->second,
                                             init, finish);
-                                
-                            }                               
+
+                            }
                             //saving to file, and giving filename to ECF so it knows what to look for.
 
                         }
@@ -1263,7 +1272,7 @@ int main(int args, char ** argv)
                         {
                             for(unsigned i = 0 ; i < AdjTreeSample->size() ; i++)
                             {
-                                UpdateAdjMapsFromForest( AdjTreeSample->at(i), gIntParams.find("nb.sample")->second, 
+                                UpdateAdjMapsFromForest( AdjTreeSample->at(i), gIntParams.find("nb.sample")->second,
                                     AdjIndexMap,
                                     AdjInScoreList,
                                     AdjOutScoreList,
@@ -1273,7 +1282,7 @@ int main(int args, char ** argv)
                                     );
                             }
                         }
-                        
+
 
                         for(unsigned i = 0 ; i < AdjTreeSample->size() ; i++)
                         {
@@ -1282,7 +1291,7 @@ int main(int args, char ** argv)
                             delete AdjTreeSample->at(i);
                         }
                         delete AdjTreeSample;
-                        
+
                     }
                     if(iter != nbIter - 1)
                     {// saving the different maps used for writing adjacencies.
@@ -1294,6 +1303,7 @@ int main(int args, char ** argv)
                 }
                 else if(gBoolParams.find("write.adjacency.trees")->second && iter == nbIter -1)
                 {
+#pragma omp ordered
                     copyTmpToFile(adjTreeFileName, ECF);
                     //if last iteration, copy AdjTree from tmp file to main file.
                 }
@@ -1306,11 +1316,12 @@ int main(int args, char ** argv)
                     else
                         cout << "Kept previouly backtracked adjacency trees results for Equivalence class family " << actualIndex << endl;
                  }
-                
+
 
                 if( (iter != nbIter - 1) && (gBoolParams.find("Loss.aware")->second) )
                 {//If it's not the last iteration, we don't need to write the adjacencies but we need them anyway.
-                    //second check should be useless in current state,as there are more than one iteration only with loss.awareness in current version (June 2017). 
+                    //second check should be useless in current state,as there are more than one iteration only with loss.awareness in current version (June 2017).
+#pragma omp ordered
                     ReadAdjMaps(actualIndex, AdjGraph,
                                 AdjIndexMap,
                                 AdjInScoreList,
@@ -1322,6 +1333,7 @@ int main(int args, char ** argv)
                 {//do this on the last iteration
                     if(gBoolParams.find("write.adjacencies")->second)
                     {
+#pragma omp ordered
                         AddAdjMapsToFile(adjFileName, ECF->getSens1(), ECF->getSens2(),
                                         AdjIndexMap,
                                         AdjInScoreList,
@@ -1350,11 +1362,11 @@ int main(int args, char ** argv)
 
                     }//else nothing to delete.
                 }
-                
-                actualIndex--;
+
+              //  actualIndex--;
             }
 
-            
+
             //Those are made to fill in the container for the free adjacencies
             if(gBoolParams.find("Loss.aware")->second)
             {
@@ -1362,15 +1374,15 @@ int main(int args, char ** argv)
                 {
                     if(verbose > 1)
                         cout << "establishing free adj list"<<endl;
-                        
+
                     MakeFreeAdjacencies(AdjGraph, GeneFamilyList, FreeAdjacencies);
-                    
+
                     if(verbose > 1)
                         cout << "Free Adjacencies list established. Rerunning DeCoSTAR."<< endl;
                     AdjGraph.clear(); // reinitialize the adjacency graph.
                 }//else it's useless because this is the last run.
             }
-            
+
             //some variables for CPU timing.
             end_iter = clock();
             elapsed_secs_iter = double(end_iter - begin_iter) / CLOCKS_PER_SEC;
@@ -1384,16 +1396,16 @@ int main(int args, char ** argv)
                 cout << "Iteration number " << i << " computed " << countingIter[i] << " matrices in " << countingTime[i] << " seconds."<<endl;
             }
         }
-        
 
-            
+
+
 
 
         if( (overflowed > 0) && (gBoolParams.find("use.boltzmann")->second) )
         {
             cout << "!!POTENTIAL OVERFLOW!!" << endl;
             cout << "No tree was backtracked on "<< overflowed <<" samples of equivalence classes."<< endl;
-            
+
             cout << "If you haven't put any score on them (in the adjacency file) that would justify their absence, then you are probably suffering from overflow."<<endl;
             cout << "To avoid this problem, choose a different boltzmann.temperature (usually one that is closer to 1)."<<endl;
         }
@@ -1405,19 +1417,19 @@ int main(int args, char ** argv)
             if(gBoolParams.find("Loss.aware") -> second)
             {//removing tmp folder and everything it contains.
                 int status = remove((TmpFolder).c_str());
-                    
+
                 if(status == -1)
                 {
                     cerr << "tmp folder removal did not work. Exited with system error " << errno<<endl;
                 }
-                
+
             }
         }
 
         for(map<int, ReconciledTree *>::iterator it = loadedRecTrees.begin(); it != loadedRecTrees.end(); ++it)
         {
             delete it->second;
-        }        
+        }
         loadedRecTrees.clear();
 
 
@@ -1446,6 +1458,6 @@ int main(int args, char ** argv)
         cerr << e.what() << endl;
         exit(-1);
     }
-    
+
     return 0;
 }

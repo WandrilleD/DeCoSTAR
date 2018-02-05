@@ -49,10 +49,10 @@ by: Wandrille Duchemin
 
 #include <string>
 
-#include <Bpp/Phyl/TreeTemplateTools.h>
-#include <Bpp/Phyl/TreeTemplate.h>
-#include <Bpp/Phyl/NodeTemplate.h>
-#include <Bpp/Phyl/Node.h>
+#include <Bpp/Phyl/Tree/TreeTemplateTools.h>
+#include <Bpp/Phyl/Tree/TreeTemplate.h>
+#include <Bpp/Phyl/Tree/NodeTemplate.h>
+#include <Bpp/Phyl/Tree/Node.h>
 #include <Bpp/Exceptions.h>
 //#include <Bpp/BppBoolean.h>
 

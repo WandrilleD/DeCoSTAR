@@ -4,15 +4,16 @@ BDIR=bin
 SDIR=source
 IDIR=include
 
-BPP_INCLUDE=$(HOME)/local/bpp/dev/include
-BPP_LIB=$(HOME)/local/bpp/dev/lib
+BPP_INCLUDE=/home/boussau/Programs/biopp/libs/include   #$(HOME)/local/bpp/dev/include
+BPP_LIB=/home/boussau/Programs/biopp/libs/lib  #$(HOME)/local/bpp/dev/lib
 
 BOOST_INCLUDE=/usr/include
 BOOST_LIB=/usr/lib
 
 
 
-CPPFLAGS= -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE) -std=c++11
+CPPFLAGS= -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE) -std=c++11 -fopenmp 
+#CPPFLAGS= -O3 -I$(IDIR) -I$(BPP_INCLUDE) -I$(BOOST_INCLUDE) -std=c++11
 LDFLAGS=-L$(BPP_LIB) -L$(BOOST_LIB)
 LIBS=-lm -lbpp-core -lbpp-seq -lbpp-phyl
 

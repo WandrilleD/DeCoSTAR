@@ -45,8 +45,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <vector>
 
-#include <Bpp/Phyl/NodeTemplate.h>
-#include <Bpp/Phyl/TreeTemplate.h>
+#include <Bpp/Phyl/Tree/NodeTemplate.h>
+#include <Bpp/Phyl/Tree/TreeTemplate.h>
 
 #include <boost/unordered_map.hpp>
 #include <boost/tokenizer.hpp>
