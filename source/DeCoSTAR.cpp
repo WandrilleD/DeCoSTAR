@@ -701,7 +701,7 @@ int main(int args, char ** argv)
             adjTreeFileName += ".xml";
         }
 
-        InitReconciledTreeFile( recFileName, gBoolParams.find("write.newick")->second );
+      //  InitReconciledTreeFile( recFileName, gBoolParams.find("write.newick")->second );
 
         if(VerboseLevel>0)
         {
@@ -751,7 +751,8 @@ int main(int args, char ** argv)
             gWeight = gDoubleParams.find("Topology.weight")->second;
 
 
-#pragma omp parallel for
+        std::vector <ReconciledTree*> recTrees(GeneFamilyList->size(), new ReconciledTree()) ;
+#pragma omp parallel for schedule(guided) 
         for(int i = 0; i < GeneFamilyList->size(); i++)
         {
             GeneFamily * Gfamily = GeneFamilyList->at(i);
@@ -794,8 +795,8 @@ int main(int args, char ** argv)
             /////////////////////////////////
             //string filename = WriteOneGeneFamilyReconciledTree( Gfamily, gBoolParams.find("write.newick")->second , gBoolParams.find("hide.losses.newick")->second, recFilePrefix, i);
             //AddToFile(WrittenFileFileName, filename );
-#pragma omp critical
-            AddOneGeneFamilyReconciledTreeToFile( Gfamily, gBoolParams.find("write.newick")->second , gBoolParams.find("hide.losses.newick")->second, recFileName, i);
+            recTrees[i] = Gfamily->getRecTree();
+            //AddOneGeneFamilyReconciledTreeToFile( Gfamily, gBoolParams.find("write.newick")->second , gBoolParams.find("hide.losses.newick")->second, recFileName, i);
 
 
             if( gBoolParams.find("write.genes")->second ) // writing
@@ -827,7 +828,9 @@ int main(int args, char ** argv)
             //}
         }
 
-        FinishReconciledTreeFile(recFileName, gBoolParams.find("write.newick")->second);
+        WriteGeneFamilyReconciledTreesToFile( recTrees, gBoolParams.find("write.newick")->second , gBoolParams.find("hide.losses.newick")->second, recFileName );
+
+      //  FinishReconciledTreeFile(recFileName, gBoolParams.find("write.newick")->second);
 
 
         //if(DUMPANDLOAD) // we destroy the geneFamilies to save memory

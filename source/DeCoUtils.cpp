@@ -6,16 +6,16 @@ phylogenies and evolutionary parameters from a dataset according to
 the maximum likelihood principle.
 
 This software is governed by the CeCILL  license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
+abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
+"http://www.cecill.info".
 
 As a counterpart to the access to the source code and  rights to copy,
 modify and redistribute granted by the license, users are provided only
 with a limited warranty  and the software's author,  the holder of the
 economic rights,  and the successive licensors  have only  limited
-liability. 
+liability.
 
 In this respect, the user's attention is drawn to the risks associated
 with loading,  using,  modifying and/or developing or reproducing the
@@ -24,9 +24,9 @@ that may mean  that it is complicated to manipulate,  and  that  also
 therefore means  that it is reserved for developers  and  experienced
 professionals having in-depth computer knowledge. Users are therefore
 encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and,  more generally, to use and operate it in the
+same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
@@ -102,7 +102,7 @@ int countConnexComponents(vector< vector<int> > *adjacencyVector)
 						alreadySeen[ neighbors->at(i) ]=true;
 						current.push_back( neighbors->at(i) );
 					}
-				}				
+				}
 			}
 
 		}
@@ -116,14 +116,14 @@ int countConnexComponents(vector< vector<int> > *adjacencyVector)
 read the reconcilied tree in a recphyloXML file and create a GeneFamily for each of them
 
 Takes:
-	- GeneFamilyList (vector <GeneFamily *> ) : gene families 
+	- GeneFamilyList (vector <GeneFamily *> ) : gene families
 	- string fileName : name of the file
 
 */
 void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileName , MySpeciesTree * Stree, bool verbose, bool superverbose)
 {
 	ifstream fileStream(fileName.c_str());
-	if( !fileStream.is_open() ) 
+	if( !fileStream.is_open() )
 	{
 		throw Exception("ReconciledTree::ReconciledTree : could not open reconciled tree file : " + fileName);
 		exit(1);
@@ -150,7 +150,7 @@ void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileNa
 
 
 /* return false if error, true if not */
-bool StrToDouble(string s, double & d) 
+bool StrToDouble(string s, double & d)
 {
 	istringstream ss(s);
 
@@ -169,7 +169,7 @@ void AddToFile(string filename, string line)
 	ofstream ofs;
 	ofs.open(filename.c_str(),ofstream::out | ofstream::app);
 	ofs << line << endl;
-	ofs.close();	
+	ofs.close();
 }
 
 
@@ -177,10 +177,10 @@ void AddToFile(string filename, string line)
 Makes a map linking each leaf name to a genefamily ID
 
 Takes:
- - vector <GeneFamily *> * GeneFamilyList 
+ - vector <GeneFamily *> * GeneFamilyList
 
 Returns:
-	map <string, int>	
+	map <string, int>
 */
 map <string, int> makeLeafToGFMap(vector <GeneFamily *> * GeneFamilyList)
 {
@@ -223,9 +223,9 @@ void fillLeafToSpMap(ReconciledTree * rtree, map <string,int> &LeafToSpMap)
 /**
  * Print the tree root at node to the file.
  */
-void printNewick( MyGeneNode *node, string fileName ) 
+void printNewick( MyGeneNode *node, string fileName )
 {
-	string newickStr = TreeTemplateTools::nodeToParenthesis( *node );	
+	string newickStr = TreeTemplateTools::nodeToParenthesis( *node );
 	ios_base::openmode mode = ios::out | ios::binary;
 	mode |= ios::app; // append
 	ofstream out( fileName.c_str(), mode );
@@ -233,9 +233,9 @@ void printNewick( MyGeneNode *node, string fileName )
 	out.close();
 }
 //species version
-void printNewick( MySpeciesNode *node, string fileName ) 
+void printNewick( MySpeciesNode *node, string fileName )
 {
-	string newickStr = TreeTemplateTools::nodeToParenthesis( *node );	
+	string newickStr = TreeTemplateTools::nodeToParenthesis( *node );
 	ios_base::openmode mode = ios::out | ios::binary;
 	mode |= ios::app; // append
 	ofstream out( fileName.c_str(), mode );
@@ -248,7 +248,7 @@ void printNewick( MySpeciesNode *node, string fileName )
 
 /*
 Takes:
-	- GeneFamilyList (vector <GeneFamily *> ) : gene families 
+	- GeneFamilyList (vector <GeneFamily *> ) : gene families
 	- TopoWeight (double) [default = 1] : weight of the topology part of the score
 
 Returns:
@@ -267,7 +267,7 @@ double computeTopoScore( vector <GeneFamily *> GeneFamilyList, double TopoWeight
 
 /*
 Takes:
-	- GeneFamilyList (vector <GeneFamily *> ) : gene families 
+	- GeneFamilyList (vector <GeneFamily *> ) : gene families
 	- ReconWeight (double) [default = 1] : weight of the reconciliation part of the score
 
 Returns:
@@ -303,7 +303,7 @@ double computeAdjacenciesScore(vector <EquivalenceClass> * RefinedEquivalenceCla
 		s +=  RefinedEquivalenceClasses->at(i).getNbAdjBreak() * ABreakCost;
 	}
 	s *= AdjWeight;
-	return s;	
+	return s;
 }
 
 /*
@@ -325,7 +325,7 @@ double computeAdjacenciesScore(vector <EquivalenceClassFamily> * ECFams, double 
 		s +=  ECFams->at(i).getNbAdjBreak() * ABreakCost;
 	}
 	s *= AdjWeight;
-	return s;	
+	return s;
 }
 
 /*
@@ -352,7 +352,7 @@ double computeCoEventScore(vector <CoEvent> Lcoevent, double DupCost, double Los
 
 /*
 Takes:
-	- GeneFamilyList (vector <GeneFamily *> ) : gene families 
+	- GeneFamilyList (vector <GeneFamily *> ) : gene families
 	- RefinedEquivalenceClasses (vector <EquivalenceClass> *) : equivalence classes
 	- Lcoevent (vector <CoEvent> ) : list of coevents accross all gene families
 	- AGainCost (double) : cost of a single gain
@@ -375,12 +375,12 @@ double computeSystemScore( vector <GeneFamily *> GeneFamilyList, vector <Equival
 	s += computeReconciliationScore( GeneFamilyList, ReconWeight );
 	s += computeAdjacenciesScore( RefinedEquivalenceClasses, AGainCost, ABreakCost, AdjWeight);
 	s += computeCoEventScore(Lcoevent, DupCost, LossCost, HGTCost,  ReconWeight );
-	return s;	
+	return s;
 }
 
 /*
 Takes:
-	- GeneFamilyList (vector <GeneFamily *> ) : gene families 
+	- GeneFamilyList (vector <GeneFamily *> ) : gene families
 	- ECFams (vector <EquivalenceClassFamily > *) : equivalence class families
 	- Lcoevent (vector <CoEvent> ) : list of coevents accross all gene families
 	- AGainCost (double) : cost of a single gain
@@ -403,7 +403,7 @@ double computeSystemScore( vector <GeneFamily *> GeneFamilyList, vector <Equival
 	s += computeReconciliationScore( GeneFamilyList, ReconWeight );
 	s += computeAdjacenciesScore( ECFams, AGainCost, ABreakCost, AdjWeight);
 	s += computeCoEventScore(Lcoevent, DupCost, LossCost, HGTCost,  ReconWeight );
-	return s;	
+	return s;
 }
 
 /*
@@ -496,11 +496,11 @@ vector < EquivalenceClass > CreateEquivalenceClasses(vector< pair <string,string
 		ReconciledTree * Rtree2 = GeneFamilyList->at(gfam2)->getRecTree();
 		if(SuperVerbose)
 		{
-			cout << "refining equivalence class " << i; 
+			cout << "refining equivalence class " << i;
 			EquivalenceClasses[i].printMe(false);
 		}
-			
-		vector<EquivalenceClass *> newEqClass = EquivalenceClasses[i].refineEqClass(Rtree1, Rtree2, DeCoLTrefine, SuperVerbose); 
+
+		vector<EquivalenceClass *> newEqClass = EquivalenceClasses[i].refineEqClass(Rtree1, Rtree2, DeCoLTrefine, SuperVerbose);
 		for(unsigned j =0; j < newEqClass.size(); j++)
 			RefinedEquivalenceClasses.push_back(*newEqClass[j]);
 	}
@@ -606,11 +606,11 @@ vector < EquivalenceClass > CreateAllPairEquivalenceClasses(vector< pair <string
 		ReconciledTree * Rtree2 = GeneFamilyList->at(gfam2)->getRecTree();
 		if(SuperVerbose)
 		{
-			cout << "refining equivalence class " << i; 
+			cout << "refining equivalence class " << i;
 			EquivalenceClasses[i].printMe(false);
 		}
-			
-		vector<EquivalenceClass *> newEqClass = EquivalenceClasses[i].refineEqClassWhole(Rtree1, Rtree2, SuperVerbose); 
+
+		vector<EquivalenceClass *> newEqClass = EquivalenceClasses[i].refineEqClassWhole(Rtree1, Rtree2, SuperVerbose);
 		for(unsigned j =0; j < newEqClass.size(); j++)
 			RefinedEquivalenceClasses.push_back(*newEqClass[j]);
 	}
@@ -726,7 +726,7 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 
 
 	//3. refining equivalence classes
-	
+
 	for(unsigned i = 0; i <  ECFams->size(); i++)
 	{
 		int gfam1 = ECFams->at(i).getGfamily1();
@@ -736,18 +736,18 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 
 		if(Verbose)
 		{
-			cout << "refining equivalence class " << i << endl; 
+			cout << "refining equivalence class " << i << endl;
 
 		}
 
-		ECFams->at(i).refine(Rtree1, Rtree2, useWholeClass, DeCoLTrefine, SuperVerbose); 
+		ECFams->at(i).refine(Rtree1, Rtree2, useWholeClass, DeCoLTrefine, SuperVerbose);
 
 
 	}
 	//cleaning
 
 	Gfam1ToGfam2ToIndex.clear();
-	
+
 
 	return ECFams;
 
@@ -755,7 +755,7 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 
 
 /*
-=> SAME AS FUNCTION ABOVE BUT TAKES 2 MORE PARAMS (USEFUL for ARt-DeCo algorithm): 
+=> SAME AS FUNCTION ABOVE BUT TAKES 2 MORE PARAMS (USEFUL for ARt-DeCo algorithm):
 	- map < string, int > speciesChrN, string: species name | int: chromosome number
 	- map < int,vector <float> > speciesC0C1, int: species Id | vector <float>: value of the 6 different costs => c0/1(0,0), c0/1(1/0,0/1), c0/1(1,1)
 
@@ -927,7 +927,7 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 	{
 		cout<<"3/ Refining equivalence classes"<<endl;
 	}
-	
+
 	for(unsigned i = 0; i <  ECFams->size(); i++)
 	{
 		int gfam1 = ECFams->at(i).getGfamily1();
@@ -1035,7 +1035,7 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 		if (Verbose)
 			cout<<"\t\tb/ Compute base_log"<<endl;
 
-		//Compute base log to compute c0P(v1~v2) & c1P(v1~v2)      
+		//Compute base log to compute c0P(v1~v2) & c1P(v1~v2)
 		float base_log;
 		// Case where genome assembly is complete and chr==contig
 		if (Proba==0)
@@ -1229,8 +1229,8 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 				{
 					toCreate = true;
 				}
-		
-				
+
+
 				if(toCreate)
 				{
 					ECFams->push_back(EquivalenceClassFamily(gfam1,gfam2));
@@ -1245,7 +1245,7 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 	//cleaning
 
 	Gfam1ToGfam2ToIndex.clear();
-	
+
 
 	return ECFams;
 
@@ -1373,13 +1373,13 @@ vector < EquivalenceClassFamily > * CreateEquivalenceClassFamilies(vector< pair 
 						break;
 					}
 				}
-				
+
 				if(toCreate)
 				{
 					ECFams->push_back(EquivalenceClassFamily(gfam1,gfam2));
 					ECFams->back().setSens1(0);
 					ECFams->back().setSens2(0);
-					
+
 				}
 
 			}
@@ -1401,20 +1401,20 @@ Fills  speciesC0C1 and speGeneAdjNb
 
 Takes:
  	- adjacencies (vector< pair <string,string > >)
- 	- vector< pair <int,int> > &adjacenciesOrientations : vector indicating the orientation of the extremities of each adjs 
- 															the int indicates which extremity of the gene is actually 
+ 	- vector< pair <int,int> > &adjacenciesOrientations : vector indicating the orientation of the extremities of each adjs
+ 															the int indicates which extremity of the gene is actually
  															part of the adjacency. (-1 : start ; 0 : unspecified ; 1 : stop)
 	- map <string,int> &LeafToSpMap
-	- MySpeciesTree *speciesTree	
+	- MySpeciesTree *speciesTree
 	- map < string, int > speciesChrNb, string: species name | int: chromosome number
 	- map < int,vector <float> > speciesC0C1, int: species Id | vector <float>: value of the 6 different costs => c0/1(0,0), c0/1(1/0,0/1), c0/1(1,1)
- 	- map<int,string> &species_id_name, 
+ 	- map<int,string> &species_id_name,
 	- map<int, map<string,int> > &speGeneAdjNb : associate the nb of adj of each gene to the gene
 	- map<int, map<string, pair< int,int > > > &speGeneExtremitiesAdjNb : associate the nb of adj of each gene extremity to the gene extremity
 	- float Break
  	- Verbose (bool)
 	- SuperVerbose (bool)
-	- map < string, map <string , double> > * adjacencyScores : associates somes adjacencies with a score between 0 and 1 
+	- map < string, map <string , double> > * adjacencyScores : associates somes adjacencies with a score between 0 and 1
 	- bool includeScoredAdjs : wether the adjacencies with a score != 1 should be included or not when computing the number of contigs
 	- double InferableInfoLessCladeSize [default = 1] : must be > 0 ; max size of the clade where we can still infer new adjacencies even though they don't possess any (ie. the only adjacency is on the outgroup of this clade)
 
@@ -1422,11 +1422,11 @@ Returns:
 	(bool): false if no problem occured; true if there a pb (less contigs than expected chromosomes.)
 */
 bool computeArtDeCoMaps(vector< pair <string,string > > &adjacencies, vector< pair <int,int> > &adjacenciesOrientations, map <string,int> &LeafToSpMap, MySpeciesTree *speciesTree,
-						 map < string, int > speciesChrNb, map < int,vector <float> > &speciesC0C1, map<int,string> &species_id_name, 
+						 map < string, int > speciesChrNb, map < int,vector <float> > &speciesC0C1, map<int,string> &species_id_name,
 						 map<int, map<string,int> > &speGeneAdjNb,
 						 map<int, map<string, pair< int,int > > > &speGeneExtremitiesAdjNb,
-						 float Break,bool Verbose, bool SuperVerbose, 
-						 map < string, map <string , double> > * adjacencyScores, 
+						 float Break,bool Verbose, bool SuperVerbose,
+						 map < string, map <string , double> > * adjacencyScores,
 						 bool includeScoredAdjs, double InferableInfoLessCladeSize)
 {
 
@@ -1540,7 +1540,7 @@ bool computeArtDeCoMaps(vector< pair <string,string > > &adjacencies, vector< pa
 	for(it1=speGeneAdjNb.begin();it1!=speGeneAdjNb.end();it1++)
 	{
 		int spe=(*it1).first;
-		
+
 		int nbGene0Adj=0;
 		int nbGene1Adj=0;
 		int nbGene2Adj=0;
@@ -1629,25 +1629,25 @@ bool computeArtDeCoMaps(vector< pair <string,string > > &adjacencies, vector< pa
 		{
 
 			float Proba=float(ctg-chr)/float(2*ctg*(ctg-1));
-	
+
 			if (Verbose)
 				cout<<"\t\tb/ Compute base_log"<<endl;
-	
-			//Compute base log to compute c0P(v1~v2) & c1P(v1~v2)      
+
+			//Compute base log to compute c0P(v1~v2) & c1P(v1~v2)
 			float base_log;
 			// Case where genome assembly is complete and chr==contig
 			if (Proba==0)
 				base_log=2.0;
 			else
 				base_log= pow((1.0-Proba)/Proba,InferableInfoLessCladeSize/Break) ;	// Computation of base_log
-	
+
 			if(Verbose)
 				cout<<"\t\t\tbase_log = "<<base_log<<endl;
-	
+
 			if (Verbose)
 				cout<<"\t\tc/ Compute C0 and C1 for the 3 different cases (0 vs 0, 0/1 vs 1/0 and 1 vs 1)"<<endl;
-	
-	
+
+
 			c0P_11=-log(1.0-Proba)/log(base_log);
 			if(Verbose)
 				cout<<"\t\t\tc0P_11 = "<<c0P_11<<endl;
@@ -1666,7 +1666,7 @@ bool computeArtDeCoMaps(vector< pair <string,string > > &adjacencies, vector< pa
 			c1P_00=-log(4*Proba)/log(base_log);
 			if(Verbose)
 				cout<<"\t\t\tc1P_00 = "<<c1P_00<<endl;
-	
+
 		}
 
 		speciesC0C1[spe].push_back(c0P_11);
@@ -1717,9 +1717,9 @@ Takes:
 */
 void ComputeEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, vector <GeneFamily *> * GeneFamilyList ,
 									map < string, map <string , double> > &adjacencyScores, map<int,vector<float> > &speciesC0C1,
-									map<int, map<string,int> > &speGeneAdjNb, map< int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb, 
+									map<int, map<string,int> > &speGeneAdjNb, map< int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 									double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,
-									double WDupCost, double WLossCost, double WHgtCost, 
+									double WDupCost, double WLossCost, double WHgtCost,
 									bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty,
 									bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
 									double adjScoreLogBase , bool interactionMode)
@@ -1731,13 +1731,13 @@ void ComputeEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, 
 			cout << "Adjacency matrix computation for the Equivalence class " << i << endl;
 		EquivalenceClassFamily * ECF = &ECFams->at(i);
 
-		ComputeOneEquivalenceClassFamily( ECF,  GeneFamilyList, 
+		ComputeOneEquivalenceClassFamily( ECF,  GeneFamilyList,
 										adjacencyScores,  speciesC0C1,  speGeneAdjNb,
-										speGeneExtremitiesAdjNb,  
-										Gcost,  Bcost ,  
-										boltzmann,  SubRecInAdj, 
-										WDupCost,  WLossCost, WHgtCost, 
-										Verbose, SuperVerbose, boltzmannTemp , absencePenalty, 
+										speGeneExtremitiesAdjNb,
+										Gcost,  Bcost ,
+										boltzmann,  SubRecInAdj,
+										WDupCost,  WLossCost, WHgtCost,
+										Verbose, SuperVerbose, boltzmannTemp , absencePenalty,
 										LossAware, FamiliesFreeAdjacencies,
 										adjScoreLogBase , interactionMode );
 
@@ -1776,14 +1776,14 @@ Takes:
 Returns:
 	vector < pair < pair<string, string> , double > >
 */
-vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFamily( EquivalenceClassFamily * ECF, vector <GeneFamily *> * GeneFamilyList, 
-																			map < string, map <string , double> > &adjacencyScores, 
-																			map<int,vector<float> > &speciesC0C1, 
-																			map<int, map<string,int> > &speGeneAdjNb, 
+vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFamily( EquivalenceClassFamily * ECF, vector <GeneFamily *> * GeneFamilyList,
+																			map < string, map <string , double> > &adjacencyScores,
+																			map<int,vector<float> > &speciesC0C1,
+																			map<int, map<string,int> > &speGeneAdjNb,
 																			map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 																			double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,
-																			double WDupCost, double WLossCost, double WHgtCost, 
-																			bool Verbose, bool SuperVerbose, double boltzmannTemp , 
+																			double WDupCost, double WLossCost, double WHgtCost,
+																			bool Verbose, bool SuperVerbose, double boltzmannTemp ,
 																			double absencePenalty,
 																			bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
 																			double adjScoreLogBase, bool interactionMode)
@@ -1791,9 +1791,9 @@ vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFami
 
 	ReconciledTree * Rtree1 =  GeneFamilyList->at(ECF->getGfamily1())->getRecTree();
 	ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
-	
+
 	return ComputeOneEquivalenceClassFamily( ECF,  Rtree1, Rtree2, adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,  Gcost, Bcost , boltzmann, SubRecInAdj, WDupCost, WLossCost, WHgtCost, Verbose, SuperVerbose, boltzmannTemp , absencePenalty , LossAware, FamiliesFreeAdjacencies, interactionMode);
-	
+
 }
 
 /*
@@ -1827,19 +1827,19 @@ Returns:
 */
 vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFamily( EquivalenceClassFamily * ECF, ReconciledTree * Rtree1, ReconciledTree * Rtree2,
 													 map < string, map <string , double> > &adjacencyScores, map<int,vector<float> > &speciesC0C1,
-													 map<int, map<string,int> > &speGeneAdjNb, 
+													 map<int, map<string,int> > &speGeneAdjNb,
 													 map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 													 double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,
-													 double WDupCost, double WLossCost, double WHgtCost, 
-													 bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty, 
+													 double WDupCost, double WLossCost, double WHgtCost,
+													 bool Verbose, bool SuperVerbose, double boltzmannTemp , double absencePenalty,
 													 bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
 													 double adjScoreLogBase, bool interactionMode)
 {
 	cout << setprecision(2);
 
-	vector < pair < pair<string, string> , double > > scoreAssociation = ECF->createAdjMatrix(adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb, 
-																								Gcost, Bcost,  Rtree1,  Rtree2, SuperVerbose , boltzmann , 
-																								LossAware, FamiliesFreeAdjacencies, 
+	vector < pair < pair<string, string> , double > > scoreAssociation = ECF->createAdjMatrix(adjacencyScores, speciesC0C1, speGeneAdjNb, speGeneExtremitiesAdjNb,
+																								Gcost, Bcost,  Rtree1,  Rtree2, SuperVerbose , boltzmann ,
+																								LossAware, FamiliesFreeAdjacencies,
 																								boltzmannTemp , absencePenalty, adjScoreLogBase, interactionMode);
 
 	if(!SubRecInAdj)
@@ -1847,7 +1847,7 @@ vector < pair < pair<string, string> , double > > ComputeOneEquivalenceClassFami
 	else //using weighted reconciliation event costs
 		ECF->computeAdjMatrix(WDupCost, WLossCost, WHgtCost);
 
-	
+
 	cout << setprecision(5);
 
 	ECF -> setScoreA(scoreAssociation);
@@ -1878,9 +1878,9 @@ void backtrackInPlaceEquivalenceClassFamilies(vector < EquivalenceClassFamily> *
 		EquivalenceClassFamily * ECF = &ECFams->at(i);
 		ReconciledTree * Rtree1 =  GeneFamilyList->at(ECF->getGfamily1())->getRecTree();
 		ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
-		
+
 		ECF->backtrackAdjMatrixForSelf(Rtree1, Rtree2, boltzmann, galwaysGain, gC1Advantage);
-		
+
 		if(Verbose)
 			cout << "Backtrack finished: " << ECF->getNbAdjTrees() << " trees." << endl;
 		if(Verbose)
@@ -1908,7 +1908,7 @@ void backtrackInPlaceOneEquivalenceClassFamily(EquivalenceClassFamily * ECF, vec
 
 	ReconciledTree * Rtree1 =  GeneFamilyList->at(ECF->getGfamily1())->getRecTree();
 	ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
-	
+
 	backtrackInPlaceOneEquivalenceClassFamily( ECF, Rtree1, Rtree2 , boltzmann, Verbose, SuperVerbose, galwaysGain,  gC1Advantage);
 
 }
@@ -1929,9 +1929,9 @@ Takes:
 */
 void backtrackInPlaceOneEquivalenceClassFamily(EquivalenceClassFamily * ECF, ReconciledTree * Rtree1, ReconciledTree * Rtree2 , bool boltzmann, bool Verbose, bool SuperVerbose, bool galwaysGain, double  gC1Advantage)
 {
-	
+
 	ECF->backtrackAdjMatrixForSelf(Rtree1, Rtree2, boltzmann, galwaysGain, gC1Advantage);
-	
+
 	if(Verbose)
 		cout << "Backtrack finished: " << ECF->getNbAdjTrees() << " trees." << endl;
 	if(Verbose)
@@ -1953,7 +1953,7 @@ Takes:
  - bool galwaysGain : there is always a Gain at the top of an Adjacency tree. Will add a gain to c1 at the root of the equivalence class
  - double gC1Advantage : probability to choose c1 over c0 IF (and only if) they have the same score
  - int &overflowed : nuùmber of overflowed EC
- - bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts	
+ - bool doNBBT [default = true] : whether or not most parsimonious solutions will be chosen using number of backtrack counts
 */
 void backtrackOnetimeOneEquivalenceClassFamily( ECFsample * Sample, EquivalenceClassFamily * ECF , vector <GeneFamily *> * GeneFamilyList , bool boltzmann, bool Verbose, bool SuperVerbose, bool galwaysGain, double  gC1Advantage, int &overflowed, bool doNBBT)
 {
@@ -1961,7 +1961,7 @@ void backtrackOnetimeOneEquivalenceClassFamily( ECFsample * Sample, EquivalenceC
 	ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
 
 
-	ECF->backtrackAdjMatrix(Rtree1, Rtree2, Sample , boltzmann, overflowed, galwaysGain, gC1Advantage, doNBBT); // creates the adj forest 
+	ECF->backtrackAdjMatrix(Rtree1, Rtree2, Sample , boltzmann, overflowed, galwaysGain, gC1Advantage, doNBBT); // creates the adj forest
 }
 
 /*
@@ -1984,7 +1984,7 @@ void backtrackNtimesOneEquivalenceClassFamily(NECFsample * Samples, EquivalenceC
 	//cout << "backtrackNtimesOneEquivalenceClassFamily init" << endl;
 	ReconciledTree * Rtree1 =  GeneFamilyList->at(ECF->getGfamily1())->getRecTree();
 	ReconciledTree * Rtree2 =  GeneFamilyList->at(ECF->getGfamily2())->getRecTree();
-	
+
 	int overflowed = 0;
 
 	for(unsigned i = 0 ; i < N ; i++)
@@ -1992,7 +1992,7 @@ void backtrackNtimesOneEquivalenceClassFamily(NECFsample * Samples, EquivalenceC
 		//cout << "backtrackNtimesOneEquivalenceClassFamily " << i << endl;
 
 		Samples->push_back( new ECFsample);
-		ECF->backtrackAdjMatrix(Rtree1, Rtree2, Samples->back() , boltzmann, overflowed, galwaysGain, gC1Advantage); // creates the adj forest 
+		ECF->backtrackAdjMatrix(Rtree1, Rtree2, Samples->back() , boltzmann, overflowed, galwaysGain, gC1Advantage); // creates the adj forest
 
 		if(Verbose)
 			cout << "backtrack : " << i << "/" << N << "\r"; // trying something...
@@ -2064,7 +2064,7 @@ Takes:
 */
  void ComputeAndBacktrackEquivalenceClassFamilies(vector < EquivalenceClassFamily> * ECFams, vector <GeneFamily *> * GeneFamilyList ,
 												map < string, map <string , double> > &adjacencyScores,
-												map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb, 
+												map<int,vector<float> > &speciesC0C1, map<int, map<string,int> > &speGeneAdjNb,
 												map<int, map<string,pair<int,int> > > &speGeneExtremitiesAdjNb,
 												double Gcost, double Bcost , bool boltzmann, bool SubRecInAdj,double WDupCost, double WLossCost, double WHgtCost, bool Verbose, bool SuperVerbose, bool galwaysGain, double gC1Advantage,
 												bool LossAware, pair < vector < pair <string, string> >, bool > FamiliesFreeAdjacencies,
@@ -2117,7 +2117,7 @@ void PopulatesCoeventsFromAdjForest( vector <AdjTree * > * AForest, vector <CoEv
 				bool tmpAccountTime = ( Rtree1->hasNode(geneids.first) ) && ( Rtree2->hasNode(geneids.second) );
 				if( (!ignoreTime) && (tmpAccountTime) )
 				{
-					if(Rtree1->getTimeSliceStatus() > 0) //time slices matters  
+					if(Rtree1->getTimeSliceStatus() > 0) //time slices matters
 					{
 						UTS = Rtree1->getNodeUpperBoundaryTS(geneids.first);
 						LTS = Rtree1->getNodeLowerBoundaryTS(geneids.first);
@@ -2153,7 +2153,7 @@ void PopulatesCoeventsFromAdjForest( vector <AdjTree * > * AForest, vector <CoEv
 				}
 				//3. adding to the found coevent or creating one
 				//cout << "adding to the found coevent or creating one : " << coeventindex << endl;
-				
+
 				if(coeventindex == -1)
 				{
 					//creating a coevent
@@ -2162,7 +2162,7 @@ void PopulatesCoeventsFromAdjForest( vector <AdjTree * > * AForest, vector <CoEv
 				}
 				//adding to the coevent:
 				if( (!ignoreTime) && (tmpAccountTime) )
-					CoEventSet->at(coeventindex).addAdj(EclassId, Nids[n], Atree,  gfam1, gfam2, Rtree1, Rtree2);//also checks if the AdjNode already exists, as well as the Genes. Sets the UTS/LTS 
+					CoEventSet->at(coeventindex).addAdj(EclassId, Nids[n], Atree,  gfam1, gfam2, Rtree1, Rtree2);//also checks if the AdjNode already exists, as well as the Genes. Sets the UTS/LTS
 				else
 					CoEventSet->at(coeventindex).addAdj(EclassId, Nids[n], Atree,  gfam1, gfam2);//also checks if the AdjNode already exists, as well as the Genes.
 
@@ -2176,7 +2176,7 @@ void PopulatesCoeventsFromAdjForest( vector <AdjTree * > * AForest, vector <CoEv
 
 /*
 Read the species tree and do basic checks.
-Does not make any subdivision. 
+Does not make any subdivision.
 
 Takes:
  - speciesFile (string): filename of the species tree
@@ -2189,16 +2189,16 @@ MySpeciesTree * getSpeciesTree(string speciesFile, bool dateAsBootstrap)
 {
     // read species tree
     string errString = "";
-    MySpeciesTree* speciesTree = MySpeciesTree::readMySpeciesTree( 
+    MySpeciesTree* speciesTree = MySpeciesTree::readMySpeciesTree(
             speciesFile.c_str(),
-            errString, 
+            errString,
             dateAsBootstrap );
     if( errString != "" || speciesTree == NULL ) {
         cerr << "Error reading species tree: " << errString << endl;
         exit(1);
     }
 
-   
+
     // species tree must be binary
     int nonBinaryCount = speciesTree->getBinaryCount();
     if( nonBinaryCount != 0 ) {
@@ -2210,7 +2210,7 @@ MySpeciesTree * getSpeciesTree(string speciesFile, bool dateAsBootstrap)
     // species tree must have unique leaves
     string dupName;
     if( !speciesTree->uniqueLeaves( dupName ) ) {
-        cerr << "ERROR: Species tree has duplicate leaf names: <" 
+        cerr << "ERROR: Species tree has duplicate leaf names: <"
              << dupName << ">" << endl;
         exit(1);
     }
@@ -2220,21 +2220,21 @@ MySpeciesTree * getSpeciesTree(string speciesFile, bool dateAsBootstrap)
 
 
 
-/** 
+/**
  * Process species tree: trimming, costs, subdivision, date changes
- * 
+ *
  * @arg MySpeciesTree * speciesTree : the species tree
  * @arg bool dateAsBootstrap : if true, node ordering is read directly from the nodes bootstraps
- * @arg bool dated : if true the tree is considered ultrametric and will be timeSliced. 
+ * @arg bool dated : if true the tree is considered ultrametric and will be timeSliced.
  * @arg bool computeT : if true, transfer are computed
  * @arg bool computeTD : if true, transfer from the dead are computed; no effect if computeT is false.
  * @arg double hgtCost : cost of an horizontal gene  transfer -> used for transfer from the dead
- * @arg double lossCost : cost of a loss -> used for transfer from the dead 
+ * @arg double lossCost : cost of a loss -> used for transfer from the dead
  * @arg bool verbose
  *
  * NB: In DeCo framework, dated and computeT should be equal but are kept separate here for maintenance / software change purpose
  * NB: Idem with computeT and computeTD
- * 
+ *
  * @return Maximum time slice. (int)
  */
 int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool dated, bool computeT, bool computeTD , double hgtCost, double lossCost ,bool verbose )
@@ -2265,19 +2265,19 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
     //    BOOST_FOREACH( MyGeneTree *geneTree, geneTrees ) {
     //        vector<string> leaves = geneTree->getLeavesNames();
     //        BOOST_FOREACH( string leafName, leaves) {
-    //            size_t pos = leafName.find( 
-    //                        gStringParams.find("char.sep")->second[0] ); 
+    //            size_t pos = leafName.find(
+    //                        gStringParams.find("char.sep")->second[0] );
     //            string taxaName = leafName.substr(0,pos);
     //            taxaNamesGenes.insert( make_pair(taxaName,1) );
     //        }
     //    }
-    //   
+    //
     //    // do undated or partially dated trimming here
     //    if( gIntParams.find("dated")->second != 2 ) {
     //        // trim species tree
     //        //if(!speciesTree->restrictTreeToLCA(taxaNamesGenes, gBoolParams.find("verbose")->second))
-    //        if( !speciesTree->trimTree( taxaNamesGenes, 
-    //                    gBoolParams.find("verbose")->second ) ) 
+    //        if( !speciesTree->trimTree( taxaNamesGenes,
+    //                    gBoolParams.find("verbose")->second ) )
     //        {
     //            cerr << "Species tree has none of the gene taxa." << endl;
     //            exit(1);
@@ -2288,19 +2288,19 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
     //3/3/2016 : no species specific costs in DeCo for now. Uncomment and add correct arugment and missing function to enable
     //// read variable costs
     //if( gStringParams.find("costs.file")->second != "none" ) {
-    //    if( !speciesTree->assignCosts( 
+    //    if( !speciesTree->assignCosts(
     //                gStringParams.find("costs.file")->second ) )
     //        exit(1);
     //    gFixedCosts = false;
     //}
 
-    // to add the outGroup to transfer from the dead 
+    // to add the outGroup to transfer from the dead
     // create a sibling of the root and a new root
-    if( computeTD && computeT )  
+    if( computeTD && computeT )
         speciesTree->addAlphaForDeadTransfer( dateAsBootstrap, hgtCost, lossCost );
-   
+
     // must be done before subdivision
-    speciesTree->compute_RealPostOrder();  
+    speciesTree->compute_RealPostOrder();
 
 	//two parameters harshly set to a given value: species tree time slices are unchanged
 	vector<int> changedTimeSlices;
@@ -2310,16 +2310,16 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
 
     // subdivide tree if dated
     if( dated ) {
-        bool success = speciesTree->computeSubdivision( dateMap, 
-                        dateAsBootstrap, 
-                        dated, // if the species tree is dated, it is presumed to be ultrametric 
-                        changedTimeSlices, errStr ); 
+        bool success = speciesTree->computeSubdivision( dateMap,
+                        dateAsBootstrap,
+                        dated, // if the species tree is dated, it is presumed to be ultrametric
+                        changedTimeSlices, errStr );
         if( !success ) {
             cerr << "ERROR: " << errStr << endl;
             exit(1);
         }
         if( verbose ) {
-            BOOST_FOREACH(int ts, changedTimeSlices ) 
+            BOOST_FOREACH(int ts, changedTimeSlices )
                 cout << "dates changed: " << ts << endl;
 
             bpp::ApplicationTools::displayTime(
@@ -2343,8 +2343,8 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
         //
         //    // trim species tree
         //    //if(!speciesTree->restrictTreeToLCA(taxaNamesGenes, gBoolParams.find("verbose")->second))
-        //    if( !speciesTree->trimTree( taxaNamesGenes, 
-        //        gBoolParams.find("verbose")->second ) ) 
+        //    if( !speciesTree->trimTree( taxaNamesGenes,
+        //        gBoolParams.find("verbose")->second ) )
         //    {
         //        cerr << "Species tree has none of the gene taxa." << endl;
         //        exit(1);
@@ -2367,18 +2367,18 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
     //    BOOST_FOREACH( MySpeciesNode* node, nodes ) {
     //        if( node->getInfos().isAlpha ) {
     //            if( node->getInfos().hgtCost == 0
-    //                || node->getInfos().lossCost == 0 ) 
+    //                || node->getInfos().lossCost == 0 )
     //            {
     //                cout << "BAD ALPHA COST=========" << endl;
     //                exit(1);
     //            }
     //        } else if( !node->hasFather() ) {
     //            // root doesn't matter
-    //        } else if( node->getInfos().duplicationCost == 0 
+    //        } else if( node->getInfos().duplicationCost == 0
     //                || node->getInfos().hgtCost == 0
-    //                || node->getInfos().lossCost == 0 ) 
+    //                || node->getInfos().lossCost == 0 )
     //        {
-    //            cout << "BAD COST=========" 
+    //            cout << "BAD COST========="
     //                 << node->getId() << endl;
     //            exit(1);
     //        }
@@ -2387,7 +2387,7 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
 
 	//3/3/2016 : no other species tree in DeCo for now. Uncomment and add correct arugment and missing function to enable
     // process another species file
-    //if( gStringParams.find("other.species.file")->second != "none" ) 
+    //if( gStringParams.find("other.species.file")->second != "none" )
     //    processOtherSpeciesTree( speciesTree, dateMap, changedTimeSlices );
 
     return maxTS;
@@ -2405,7 +2405,7 @@ Checks if the gene tree has enough leaves and nop duplicate leaves. exit if prob
 */
 void checkGeneTree( int counter, MyGeneTree *geneTree)
 {
-    // needed by the algoritm!!!	
+    // needed by the algoritm!!!
     if( geneTree->getNumberOfLeaves()<3 ) {
         cerr << "ERROR: Gene tree " << counter
              << " has only " << geneTree->getNumberOfLeaves()
@@ -2417,7 +2417,7 @@ void checkGeneTree( int counter, MyGeneTree *geneTree)
     string dupName;
     if( !geneTree->uniqueLeaves( dupName ) ) {
         cerr << "ERROR: A gene tree " << counter
-            << " has duplicate leaf names: <" 
+            << " has duplicate leaf names: <"
              << dupName << ">" << endl;
         exit(1);
     }
@@ -2437,20 +2437,20 @@ vector<string> readGeneDistributionsFile(string ListGeneFile)
 {
 	//// read gene trees distributions
 	ifstream fileStream(ListGeneFile.c_str());
-	
-	if( !fileStream.is_open() ) 
+
+	if( !fileStream.is_open() )
 	{
 	  	cout << "Could not open gene distribution files file."<< ListGeneFile <<endl;
 		exit(1);
 	}
 	vector<string> geneFiles;
-	while( !fileStream.eof() ) 
+	while( !fileStream.eof() )
 	{
 		string line;
 		getline( fileStream, line );
 		boost::trim( line );
 
-		if( line == "" ) 
+		if( line == "" )
 		{
 				// ignore blank lines
 		}
@@ -2465,12 +2465,12 @@ vector<string> readGeneDistributionsFile(string ListGeneFile)
 /*
 *
 * @arg vector <GeneFamily *> * GeneFamilyList : vector of GeneFamily where gene distribution will be added
-* @arg MySpeciesTree *speciesTree 
+* @arg MySpeciesTree *speciesTree
 * @arg vector<string> geneFiles : vector of gene distribution filenames
 * @arg bool ale : true if the files are actually in the .ale format
 * @arg bool reconciled : true if the files actually contains a reconciled tree in PhyloXML format (negated by ale)
 * @arg char charSep : separator between species id and gene id
-* @arg bool verbose 
+* @arg bool verbose
 * @arg bool superverbose
 * @arg bool rooted (default = false)
 */
@@ -2493,17 +2493,17 @@ void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree
 			if(!reconciled)
 			{
 				vector<MyGeneTree*> geneTrees;
-			
+
 
 				geneTrees = MyGeneTree::readMyGeneTrees( geneFile.c_str(), errString );//reading the tree list
-				if( errString != "" ) 
+				if( errString != "" )
 				{
 					cerr << "Error reading gene trees: " << errString << endl;
 					exit(1);
 				}
-				if( verbose ) 
+				if( verbose )
 					cout << geneTrees.size() << " gene trees" << endl;
-	
+
 //				for(size_t j = 0 ; j < geneTrees.size();j++)
 //					checkGeneTree(j,geneTrees[j]);
 				if(!rooted)
@@ -2521,12 +2521,12 @@ void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree
 				//
 				//if(superverbose)
 				//	GeneFamilyList->back()->printRecTree();
-				
+
 				// adds as many gene family as there are reconciled tree in the file.
-				
+
 				//int previousS = GeneFamilyList->size();
 
-				ReadRecPhyLoXMLFile(   GeneFamilyList,  geneFile , speciesTree,  verbose, superverbose); 
+				ReadRecPhyLoXMLFile(   GeneFamilyList,  geneFile , speciesTree,  verbose, superverbose);
 
 				//if(verbose)
 				//{
@@ -2554,17 +2554,17 @@ vector< pair <string,string > > readAdjacencies(string AdjacencyFile)
 
 	vector< pair <string,string > > adjacencies;
 	pair <string,string> currentadj;
-	
-	while( !AdjStream.eof() ) 
+
+	while( !AdjStream.eof() )
 	{
 		AdjStream >> currentadj.first;
 
-		if(AdjStream.eof()) // to avoid 
+		if(AdjStream.eof()) // to avoid
 			continue;
 		AdjStream >> currentadj.second;
 		adjacencies.push_back(currentadj);
 	}
-	
+
 	return adjacencies;
 }
 
@@ -2582,8 +2582,8 @@ vector< pair <string,string > > readAdjacencies(string AdjacencyFile , map < str
 
 	vector< pair <string,string > > adjacencies;
 	pair <string,string> currentadj;
-	
-	while( getline(AdjStream , line) ) 
+
+	while( getline(AdjStream , line) )
 	{
 		boost::trim( line );
 		if( line  == "" )
@@ -2608,7 +2608,7 @@ vector< pair <string,string > > readAdjacencies(string AdjacencyFile , map < str
 		{
 			if(verbose)
 				cout << "found a line with only 1 element. Ignoring."<< endl;
-			continue;			
+			continue;
 		}
 
 		currentadj.first = parsedLine[0];
@@ -2640,7 +2640,7 @@ vector< pair <string,string > > readAdjacencies(string AdjacencyFile , map < str
 				sens2 = -1; // this is the start of the first gene
 			else if( parsedLine[3] == "-" )
 				sens2 = 1; // this is the stop of the first gene
-				
+
 		}
 
 		//cout << "  parsed : " << sens1 << " " << sens2 << " " << scoreIndex<< endl;
@@ -2664,7 +2664,7 @@ vector< pair <string,string > > readAdjacencies(string AdjacencyFile , map < str
 			}
 
 			adjacencyScores[currentadj.first][currentadj.second] = score;
-	
+
 			//if(verbose)
 			//	cout << "read adj score"<< currentadj.first << "-" << currentadj.second << " -> "<< score <<endl;
 
@@ -2674,7 +2674,7 @@ vector< pair <string,string > > readAdjacencies(string AdjacencyFile , map < str
 
 		adjacencies.push_back(currentadj);
 	}
-	
+
 	return adjacencies;
 
 }
@@ -2698,7 +2698,7 @@ string WriteSpeciestree(MySpeciesTree * speciesTree, bool newick, string prefix,
 	if(newick)
 	{
 		filename += "speciesTree.newick";
-		
+
 		MySpeciesTree *tree = speciesTree->getPostorderTree();
 
 		// correspondance between leaf names and RPO
@@ -2706,7 +2706,7 @@ string WriteSpeciestree(MySpeciesTree * speciesTree, bool newick, string prefix,
 
 		for( unsigned i = 0 ; i < leaves.size() ; i ++)
 		{
-			if( leaves[i]->hasName() ) 
+			if( leaves[i]->hasName() )
 			{
 				string name = leaves[i]->getName();
 				MySpeciesNode * N = speciesTree->getNode(name);
@@ -2724,7 +2724,7 @@ string WriteSpeciestree(MySpeciesTree * speciesTree, bool newick, string prefix,
 		ofstream ofs;
 
 		filename += "speciesTree.phyloxml";
-		ofs.open(filename.c_str(),ofstream::out);		
+		ofs.open(filename.c_str(),ofstream::out);
 		DOM.WritePhyloXMLSpeTree(ofs, speciesTree);
 		ofs.close();
 	}
@@ -2733,7 +2733,7 @@ string WriteSpeciestree(MySpeciesTree * speciesTree, bool newick, string prefix,
 
 
 /*
-* @arg vector < GeneFamily * > * GeneFamilyList 
+* @arg vector < GeneFamily * > * GeneFamilyList
 * @arg bool newick : if true the trees will be written in newick format. otherwise they will be in recPhyloXML
 * @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
 * @arg string prefix : the prefix (containing path) of the filename
@@ -2768,11 +2768,11 @@ vector <string> WriteGeneFamilyReconciledTrees( vector < GeneFamily * > * GeneFa
 * @arg bool newick : if true the trees will be written in newick format. otherwise they will be in recPhyloXML
 * @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
 * @arg string prefix : the prefix (containing path) of the filename
-* @arg int index : the index of the GeneFamily 
+* @arg int index : the index of the GeneFamily
 *
 * string : name of the file the tree was written in
 */
-string WriteOneGeneFamilyReconciledTree( GeneFamily * GFam, bool newick,bool hideLosses, string prefix, int index) // not used anymore. 
+string WriteOneGeneFamilyReconciledTree( GeneFamily * GFam, bool newick,bool hideLosses, string prefix, int index) // not used anymore.
 {
 	DeCoOutputManager DOM;
 
@@ -2798,8 +2798,8 @@ string WriteOneGeneFamilyReconciledTree( GeneFamily * GFam, bool newick,bool hid
 * @arg bool newick : if true the trees will be written in newick format. otherwise they will be in recPhyloXML
 * @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
 * @arg string fileName : the name of the file to add the tree to
-* @arg int index : the index of the GeneFamily 
-* 
+* @arg int index : the index of the GeneFamily
+*
 */
 void AddOneGeneFamilyReconciledTreeToFile( GeneFamily * GFam, bool newick,bool hideLosses, string fileName, int index)
 {
@@ -2850,6 +2850,43 @@ void FinishReconciledTreeFile(string fileName, bool newick)
 
 
 /*
+* @arg vector<ReconciledTree>  recTrees
+* @arg bool newick : if true the trees will be written in newick format. otherwise they will be in recPhyloXML
+* @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
+* @arg string fileName : the name of the file to write the trees to
+* @arg int index : the index of the GeneFamily
+*
+*/
+void WriteGeneFamilyReconciledTreesToFile( std::vector< ReconciledTree* >& recTrees, bool newick, bool hideLosses, string fileName )
+{
+	DeCoOutputManager DOM;
+
+	ofstream ofs;
+	ofs.open(fileName.c_str(),ofstream::out | ofstream::app);
+
+	if(!newick)
+	{
+		ofs << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" <<endl;
+		ofs << "<recPhylo xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.recg.org ./recGeneTreeXML.xsd\" xmlns=\"http://www.recg.org\" >" << endl;
+	}
+
+	for(int i = 0; i < recTrees.size(); i++)
+	{
+		DOM.WriteRecTree(ofs, recTrees[i], newick, hideLosses, i);
+	}
+
+	if(!newick)
+	{
+		ofstream ofs;
+		ofs.open(fileName.c_str(),ofstream::out | ofstream::app);
+		ofs << "</recPhylo>" << endl;
+	}
+
+	ofs.close();
+}
+
+
+/*
 Takes:
  - string filenName: name of the file to wrtie in
  - bool newick : if true: newick format is used. Otherwise, some recPhyloXML derived format is used
@@ -2875,14 +2912,14 @@ void InitAdjacencyTreeFile(string fileName, bool newick)
 * @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
 * @arg double GainCost (default = 3) : cost of a single gain event
 * @arg double BreakCost (default = 1) : cost of a single break event
-* 
+*
 */
 void AddECFAForestToFile(string fileName, EquivalenceClassFamily * ECF, bool newick,bool hideLosses, double GainCost ,  double BreakCost)
 {
 	int fam1 = ECF->getGfamily1();
 	int fam2 = ECF->getGfamily2();
 
-	int sens1 = ECF->getSens1();	
+	int sens1 = ECF->getSens1();
 	int sens2 = ECF->getSens2();
 
 
@@ -2894,46 +2931,46 @@ void AddECFAForestToFile(string fileName, EquivalenceClassFamily * ECF, bool new
 	if(!newick)
 	{
 		ofs << "  <EquivalenceClassFamily fam1=\""<<fam1;
-	
+
 		if( sens1 == 1 )
 			ofs << "_stop";
 		else if( sens1 == -1 )
 			ofs << "_start";
-	
+
 		ofs <<"\" fam2=\""<<fam2;
-	
+
 		if( sens2 == 1 )
 			ofs <<  "_stop";
 		else if( sens2 == -1 )
 			ofs << "_start";
-	
+
 		ofs<<"\">"<< endl;
 	}
 	else
 	{
 		//line indicating information
 		ofs << ">";
-	
+
 		ofs <<  "Adjacencies between families: " << fam1;
-	
+
 		if( sens1 == 1 )
 			ofs << "_stop";
 		else if( sens1 == -1 )
 			ofs << "_start";
-	
+
 		ofs << "-" << fam2;
-	
+
 		if( sens2 == 1 )
 			ofs <<  "_stop";
 		else if( sens2 == -1 )
 			ofs << "_start";
-	
+
 		ofs << " number of trees: "<< ECF->getNbAdjTrees() ;
 		ofs << " #Gain: " << ECF->getNbAdjGain();
 		ofs << " #Break: " << ECF->getNbAdjBreak();
 		ofs << " score: " << ECF->getNbAdjGain() * GainCost + ECF->getNbAdjBreak() * BreakCost ;
 		ofs << endl;
-	}		
+	}
 
 
 	int line_indent = 2;
@@ -2963,14 +3000,14 @@ void AddECFAForestToFile(string fileName, EquivalenceClassFamily * ECF, bool new
 * @arg bool hideLosses : if true, losses and the branches leading to them wil be removed from the newick string
 * @arg double GainCost (default = 3) : cost of a single gain event
 * @arg double BreakCost (default = 1) : cost of a single break event
-* 
+*
 */
 void AddECFNsampleToFile(string fileName, EquivalenceClassFamily * ECF, NECFsample * sample, bool newick,bool hideLosses, double GainCost, double BreakCost)
 {
 	int fam1 = ECF->getGfamily1();
 	int fam2 = ECF->getGfamily2();
 
-	int sens1 = ECF->getSens1();	
+	int sens1 = ECF->getSens1();
 	int sens2 = ECF->getSens2();
 
 
@@ -2982,19 +3019,19 @@ void AddECFNsampleToFile(string fileName, EquivalenceClassFamily * ECF, NECFsamp
 	if(!newick)
 	{
 		ofs << "  <EquivalenceClassFamily fam1=\""<<fam1;
-	
+
 		if( sens1 == 1 )
 			ofs << "_stop";
 		else if( sens1 == -1 )
 			ofs << "_start";
-	
+
 		ofs <<"\" fam2=\""<<fam2;
-	
+
 		if( sens2 == 1 )
 			ofs <<  "_stop";
 		else if( sens2 == -1 )
 			ofs << "_start";
-	
+
 		ofs<<"\">"<< endl;
 	}
 
@@ -3008,16 +3045,16 @@ void AddECFNsampleToFile(string fileName, EquivalenceClassFamily * ECF, NECFsamp
 		{
 			//line indicating
 			ofs << ">";
-		
+
 			ofs <<  "Id: " << fam1;
-		
+
 			if( sens1 == 1 )
 				ofs << "_stop";
 			else if( sens1 == -1 )
 				ofs << "_start";
-		
+
 			ofs << "-" << fam2;
-		
+
 			if( sens2 == 1 )
 				ofs <<  "_stop";
 			else if( sens2 == -1 )
@@ -3049,7 +3086,7 @@ void AddECFNsampleToFile(string fileName, EquivalenceClassFamily * ECF, NECFsamp
 		{
 			ofs << "    <sample number=\""<<sampleIndex<<"\">"<< endl;
 		}
-		
+
 
 		for(size_t j = 0; j < sample->at(sampleIndex)->size() ; j++)
 		{
@@ -3082,10 +3119,10 @@ void AddECFNsampleToFile(string fileName, EquivalenceClassFamily * ECF, NECFsamp
 * @arg double BreakCost (default = 1) : cost of a single break event
 * @arg bool Init ( default : false) : if true, it will write some massage to signal the start of this ECF (XML only)
 * @arg bool Finish ( default : false) : if true, it will write some massage to signal the end of this ECF (XML only)
-* 
+*
 */
 void AddECFsampleToFile(string fileName, EquivalenceClassFamily * ECF, ECFsample * sample,
-							 int sampleIndex, bool newick,bool hideLosses,  
+							 int sampleIndex, bool newick,bool hideLosses,
 							 double GainCost ,  double BreakCost , bool Init, bool Finish)
 {
 
@@ -3093,7 +3130,7 @@ void AddECFsampleToFile(string fileName, EquivalenceClassFamily * ECF, ECFsample
 	int fam1 = ECF->getGfamily1();
 	int fam2 = ECF->getGfamily2();
 
-	int sens1 = ECF->getSens1();	
+	int sens1 = ECF->getSens1();
 	int sens2 = ECF->getSens2();
 
 
@@ -3105,19 +3142,19 @@ void AddECFsampleToFile(string fileName, EquivalenceClassFamily * ECF, ECFsample
 	if( (!newick) && (Init) )
 	{
 		ofs << "  <EquivalenceClassFamily fam1=\""<<fam1;
-	
+
 		if( sens1 == 1 )
 			ofs << "_stop";
 		else if( sens1 == -1 )
 			ofs << "_start";
-	
+
 		ofs <<"\" fam2=\""<<fam2;
-	
+
 		if( sens2 == 1 )
 			ofs <<  "_stop";
 		else if( sens2 == -1 )
 			ofs << "_start";
-	
+
 		ofs<<"\">"<< endl;
 	}
 
@@ -3128,16 +3165,16 @@ void AddECFsampleToFile(string fileName, EquivalenceClassFamily * ECF, ECFsample
 	{
 		//line indicating
 		ofs << ">";
-	
+
 		ofs <<  "Id: " << fam1;
-	
+
 		if( sens1 == 1 )
 			ofs << "_stop";
 		else if( sens1 == -1 )
 			ofs << "_start";
-	
+
 		ofs << "-" << fam2;
-	
+
 		if( sens2 == 1 )
 			ofs <<  "_stop";
 		else if( sens2 == -1 )
@@ -3165,7 +3202,7 @@ void AddECFsampleToFile(string fileName, EquivalenceClassFamily * ECF, ECFsample
 	{
 		ofs << "    <sample number=\""<<sampleIndex<<"\">"<< endl;
 	}
-	
+
 	for(size_t j = 0; j < sample->size() ; j++)
 	{
 		DOM.WriteAdjForest(ofs, sample->at(j),newick, hideLosses, line_indent);
@@ -3185,7 +3222,7 @@ void AddECFsampleToFile(string fileName, EquivalenceClassFamily * ECF, ECFsample
 	}
 
 	ofs.close();
-	return ;	
+	return ;
 }
 
 
@@ -3194,14 +3231,14 @@ Takes:
 	- string fileName
 	- EquivalenceClassFamily * ECF
 	- bool hideLosses
-	- int fam1 
-	- int fam2 
+	- int fam1
+	- int fam2
 	- int ECindex
-	- int sens1 = 0 
+	- int sens1 = 0
 	- int sens2 = 0
 	- int sample = -1
 */
-void AddAForestToFileNewick(string fileName, AFOREST * forest,bool hideLosses , 
+void AddAForestToFileNewick(string fileName, AFOREST * forest,bool hideLosses ,
 								int fam1 , int fam2 , int ECindex, int sens1 , int sens2 , int sample )
 {
 	ofstream ofs;
@@ -3235,7 +3272,7 @@ void AddAForestToFileNewick(string fileName, AFOREST * forest,bool hideLosses ,
 
 	ofs << endl;
 
-	
+
 
 	ofs.close();
 
@@ -3246,10 +3283,10 @@ Takes:
 	- string fileName
 	- EquivalenceClassFamily * ECF
 	- bool hideLosses
-	- int fam1 
-	- int fam2 
+	- int fam1
+	- int fam2
 	- int ECindex
-	- int sens1 = 0 
+	- int sens1 = 0
 	- int sens2 = 0
 	- int sample = -1
 */
@@ -3269,7 +3306,7 @@ void AddAForestToFileXML(string fileName, AFOREST * forest,bool hideLosses ,
 	if(sample !=-1)
 		line_indent++;
 
-	DOM.WriteAdjForest(ofs, forest,false, hideLosses, line_indent);	
+	DOM.WriteAdjForest(ofs, forest,false, hideLosses, line_indent);
 
 	if(sample !=-1)
 		ofs << "    </sample>"<< endl;
@@ -3360,7 +3397,7 @@ vector <string> WriteECFsample(EquivalenceClassFamily * ECF,ECFsample * sample,i
 {
 	DeCoOutputManager DOM;
 
-	
+
 
 	string filePrefix = prefix + "EqClass_" + static_cast<ostringstream*>( &(ostringstream() << g1) )->str();
 
@@ -3442,11 +3479,11 @@ void WriteAdjacenciesOneECF( EquivalenceClassFamily * ECF, string prefix, Reconc
 	ofstream ofs;
 	ofs.open(filename.c_str(),ofstream::out | ofstream::app);
 
-	
+
 	for(size_t j = 0; j < ECF->getNbEqClasses() ; j++)
 		DOM.WriteAdjForestAdjacencies(ofs, ECF->getAdjForest(j), ECF->getSens1() , ECF->getSens2() , Rtree1, Rtree2);
 
-	ofs.close();	
+	ofs.close();
 }
 
 
@@ -3455,8 +3492,8 @@ map < string, int > storeSpeciesChrNumber(string chrNumberFile)
 {
 	//// read file with chromosome number corresponding to species
 	ifstream fileStream(chrNumberFile.c_str());
-	
-	if( !fileStream.is_open() ) 
+
+	if( !fileStream.is_open() )
 	{
 	  	cout << "Could not open chromosome number by species file."<< chrNumberFile <<endl;
 		exit(1);
@@ -3470,14 +3507,14 @@ map < string, int > storeSpeciesChrNumber(string chrNumberFile)
 		fileStream>>species;
 		fileStream>>chrNb;
 		speciesChrNb[species]=chrNb;
-	} 
+	}
 	return speciesChrNb;
 }
 
 /*
 adds the name of genes at ancestral speciation and leaves to the specified file
 
-Takes:  
+Takes:
 	- ReconciledTree * RT : reconciled tree of the family
 	- int famIndex : index of the gene family
 	- string fileName : name of the file to add to
@@ -3490,7 +3527,7 @@ void WriteGeneOneGF( ReconciledTree * RT, int famIndex, string fileName, map<int
 	ofstream ofs;
 	ofs.open(fileName.c_str(),ofstream::out | ofstream::app);
 
-	//1. internal 
+	//1. internal
 	vector <int> nodeList = RT->getInnerNodesId();
 
 	for(unsigned i = 0 ; i < nodeList.size(); i++)
@@ -3506,7 +3543,7 @@ void WriteGeneOneGF( ReconciledTree * RT, int famIndex, string fileName, map<int
 				if( RT->isRealLeaf(DescendantIds[j]) ) // this is a leaf
 					ofs << " " << RT->getNodeName(DescendantIds[j]) ;
 				else // thisis a speciation
-					ofs << " " << famIndex << "|" << DescendantIds[j] ; 					
+					ofs << " " << famIndex << "|" << DescendantIds[j] ;
 			}
 			ofs << endl;
 		}
@@ -3533,9 +3570,9 @@ void WriteGeneOneGF( ReconciledTree * RT, int famIndex, string fileName, map<int
 				ofs << it->second;
 				ofs << " " << removePrefix(RT->getNodeName(nodeList[i]), it->second, true) << endl; // we remove the species name to avoid redundancy
 			}
-			
+
 		}
-			
+
 	}
 
 
@@ -3553,7 +3590,7 @@ Takes:
     - ReconciledTree * Rtree1 : reconciled tree of the first family
 	- ReconciledTree * Rtree2 : reconciled tree of the second family
 */
-void UpdateAdjMapsFromTree( AdjTree * Atree, int NbSample, 
+void UpdateAdjMapsFromTree( AdjTree * Atree, int NbSample,
 								map <string, map <string, int> > & AdjIndexMap,
             					vector < double > & AdjInScoreList,
             					vector < double > & AdjOutScoreList,
@@ -3572,10 +3609,10 @@ void UpdateAdjMapsFromTree( AdjTree * Atree, int NbSample,
 		int evt = Atree->getNodeEvent(nodeList[i]);
 		if( ( Atree->isSpeciation(evt) ) || ( Atree->isExtant(evt) ) )
 		{
-			
+
 			if(! Atree->hasNodeProperty(nodeList[i],nodeid1) ) //no nid property -> ignore
 				continue;
-			
+
 			pair <int,int> gids = Atree->getNodeNodeIds(nodeList[i]);
 
 			string name1;
@@ -3603,13 +3640,13 @@ void UpdateAdjMapsFromTree( AdjTree * Atree, int NbSample,
 			if( it1 != AdjIndexMap.end() )
 			{ // found the first name
 				it2 = it1->second.find(name2); // search for the second name
-	
+
 				if( it2 != it1->second.end())
 				{ // found the second name
 					adjIndex = it2->second;
 				}
 			}
-	
+
 			//if(adjIndex == -1)
 			//{ // reverse search: first Lnames2 then Lnames1
 			//	it1 = AdjIndexMap.find(name2);
@@ -3623,7 +3660,7 @@ void UpdateAdjMapsFromTree( AdjTree * Atree, int NbSample,
 			//		}
 			//	}
 			//}
-	
+
 			if(adjIndex == -1)
 			{
 				//the adj wasn't found -> add it
@@ -3658,7 +3695,7 @@ Takes:
     - ReconciledTree * Rtree1 : reconciled tree of the first family
 	- ReconciledTree * Rtree2 : reconciled tree of the second family
 */
-void UpdateAdjMapsFromForest( vector < AdjTree * > * AForest, int NbSample, 
+void UpdateAdjMapsFromForest( vector < AdjTree * > * AForest, int NbSample,
 								map <string, map <string, int> > & AdjIndexMap,
             					vector < double > & AdjInScoreList,
             					vector < double > & AdjOutScoreList,
@@ -3669,7 +3706,7 @@ void UpdateAdjMapsFromForest( vector < AdjTree * > * AForest, int NbSample,
 {
 	for(unsigned i =0;i< AForest->size();i++)
 	{
-		UpdateAdjMapsFromTree( AForest->at(i),  NbSample, 
+		UpdateAdjMapsFromTree( AForest->at(i),  NbSample,
 								AdjIndexMap,
             					AdjInScoreList,
             					AdjOutScoreList,
@@ -3723,10 +3760,10 @@ void AddAdjMapsToFile(string fileName , int sens1, int sens2,
 
 
 
-	ofs.close();	
+	ofs.close();
 }
 
-/*  
+/*
 Only does leaves. Doesn't check internal nodes names
 */
 map <int,string> buildRPOtoSpNameMap(MySpeciesTree * Stree)
@@ -3748,7 +3785,7 @@ map <int,string> buildRPOtoSpNameMap(MySpeciesTree * Stree)
 
 /*
 Takes:
-	- string s : a string 
+	- string s : a string
 	- string prefix: a prefix
 	- bool removeOneMore (default = false): if true, one more character will be remove a separator for instance)
 Returns:
@@ -3835,7 +3872,7 @@ void ReadAdjMaps(int actualIndex, map <int , map < string, vector < pair<string,
 		}
 
 	}
-	
+
 }
 
 
@@ -3853,7 +3890,7 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 						vector <GeneFamily *> * GeneFamilyList,
 						map < int ,pair < vector < pair <string, string> >, bool > > & FreeAdjacencies)
 {
-	
+
 	//loadedRecTree is useless Adelme.
 	for(int it = 0; it !=  GeneFamilyList->size() ; ++it)
 	{
@@ -3864,56 +3901,56 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 		for (unsigned int i = 0; i < ids.size(); i++)
 		{
 			string var;
-			
+
 			if( MyRecTree -> getNodeEvent(ids[i]) == 2)//Event 2 is for Loss.
 			{
 				//cout << "Father: " << MyRecTree -> getFatherId(ids[i]) << endl;
 				int father_id = MyRecTree -> getFatherId(ids[i]);
 				int father_spe = MyRecTree -> getNodeSpecies(father_id);
 				int loss_spe =  MyRecTree -> getNodeSpecies(ids[i]);
-				
+
 				var = boost::lexical_cast<std::string>(it) + "|" + boost::lexical_cast<std::string>(father_id);
-				
+
 				//cout << var << endl;
 				//cout << "Event: " << MyRecTree -> getNodeEvent(ids[i]) << endl;
-				
+
 				int nbNeighbors =  AdjGraph[father_spe][var].size();
-				
+
 				if(nbNeighbors >= 2)
 				{
-					
+
 					/*
 					if(nbNeighbors == 2){
 						countTwoNeighbors++;
 					}else{
 						countMoreNeighbors++;
 					}*/
-					
+
 					vector <string> NodeCandidates;
-					
+
 					for(unsigned j = 0; j < AdjGraph[father_spe][var].size(); j++)
 					{
-						
+
 						stringstream currNeighbor(AdjGraph[father_spe][var][j].first);
-						
+
 						string segment;
 						vector <string> seglist;
-						
+
 						while(getline(currNeighbor, segment, '|'))
 						{
 						   seglist.push_back(segment);
 						}
 						int currFam = atoi(seglist[0].c_str());
 						int currNode = atoi(seglist[1].c_str());
-						
+
 						seglist.clear();
-						
+
 						ReconciledTree * currRecTree = GeneFamilyList -> at(currFam) -> getRecTree();
-						
+
 						vector <int> currSons = currRecTree -> getSonsId(currNode);
 						int free_node;
 						bool FoundCandidate = false;//could change the default.
-						
+
 						if (currRecTree -> getNodeSpecies(currSons[0]) == loss_spe)
 						{
 							if(currRecTree -> getNodeEvent(currSons[0]) == 1 or currRecTree -> getNodeEvent(currSons[0]) == 0) // 1 is speciation, 0 is extant
@@ -3924,12 +3961,12 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 							else
 							{
 								if(currRecTree -> getNodeEvent(currSons[0]) == 2)
-								{	
+								{
 									//countLosses++;
-									
+
 									pair <int, int> candidateNode;
 									candidateNode = FindGroupLoss(father_id, it, loss_spe, father_spe, currNode,currFam, AdjGraph, GeneFamilyList);
-									
+
 									if(candidateNode.first != -1)
 									{
 										currFam = candidateNode.first;
@@ -3956,9 +3993,9 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 									{
 										//countLosses++;
 										pair < int, int> candidateNode;
-										
+
 										candidateNode = FindGroupLoss(father_id, it, loss_spe, father_spe, currNode,currFam, AdjGraph, GeneFamilyList);
-									
+
 										if(candidateNode.first != -1)
 										{
 											currFam = candidateNode.first;
@@ -3971,7 +4008,7 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 								}
 							}
 						}
-						
+
 						if(FoundCandidate)
 						{
 							string node_name;
@@ -3983,39 +4020,39 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 							{
 								node_name = boost::lexical_cast<std::string>(currFam) + "|" + boost::lexical_cast<std::string>(free_node);
 							}
-							
+
 							NodeCandidates.push_back(node_name);
 						}
 					}
-					
+
 					vector < pair < string, string > > potentialFreeAdjacencies;
 					vector < int > potentialIndex;
-					
+
 					if(NodeCandidates.size() > 1)
 					{//else, we can't really give a free adjacency between one node, or zeno node.
 
 						for(unsigned j = 0; j < NodeCandidates.size(); j++)
 						{
-							
+
 							for(unsigned k = 0; k < AdjGraph[loss_spe][NodeCandidates[j]].size(); k++)
 							{
 								string currNeighborInLostSpe = AdjGraph[loss_spe][NodeCandidates[j]][k].first;
-								
+
 								if(find(NodeCandidates.begin(), NodeCandidates.end(), currNeighborInLostSpe) != NodeCandidates.end())
 								{
 									potentialFreeAdjacencies.push_back(make_pair(currNeighborInLostSpe, NodeCandidates[j]));
 									potentialIndex.push_back(AdjGraph[loss_spe][NodeCandidates[j]][k].second);
 								}
-								
+
 							}
-							
+
 						}
-						
+
 					}
-					
-					
+
+
 					if(potentialFreeAdjacencies.size() == 2){// then there is only one possibility, and one adjacency (seen twice as we look at both nodes)
-						
+
 						if(!doesItExist(FreeAdjacencies[potentialIndex[0]], potentialFreeAdjacencies[0]))
 						{
 							FreeAdjacencies[potentialIndex[0]].first.push_back(potentialFreeAdjacencies[0]);
@@ -4026,18 +4063,18 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 				}//else nothing, we can't know which pair of node will gain the free adjacency
 
 			}// else, nothing we are only correcting losses.
-			
+
 		}//for loop on nodes of a family.
-		
+
 		//cout << "___________________________" << endl;
-		
+
 	}//for loop on gene families
-	
+
 }
 
 
 /*This function copies the AdjTreeSamples to a temporary files, whose name is saved as an attribute of ECF.
- * 
+ *
 * @arg EquivalenceClassFamily * ECF : pointer the the ECF whose trees we want to write
 * @arg NECFsample * sample : the N samples to write
 * @arg bool newick : if true the trees will be written in newick format. otherwise they will be in recPhyloXML
@@ -4046,14 +4083,14 @@ void MakeFreeAdjacencies(map <int , map < string, vector < pair<string, int > > 
 * @arg double BreakCost (default = 1) : cost of a single break event
 * @arg bool Init ( default : false) : if true, it will write some massage to signal the start of this ECF (XML only)
 * @arg bool Finish ( default : false) : if true, it will write some massage to signal the end of this ECF (XML only)
-* 
+*
 */
 void saveECFsampleToTmpFile(EquivalenceClassFamily * ECF, ECFsample * sample,
-							 int sampleIndex, bool newick,bool hideLosses,  
+							 int sampleIndex, bool newick,bool hideLosses,
 							 double GainCost ,  double BreakCost , bool Init, bool Finish)
 {
 	string ECFfileName = ECF -> getTmpFile();
-	
+
 	if( Init == true)
 	{
 		ifstream File((ECFfileName).c_str());
@@ -4066,13 +4103,13 @@ void saveECFsampleToTmpFile(EquivalenceClassFamily * ECF, ECFsample * sample,
 			}
 		}
 	}
-	
+
 	AddECFsampleToFile(ECFfileName, ECF, sample,
 					   sampleIndex, newick, hideLosses,
 					   GainCost,
 					   BreakCost,
 					   Init, Finish);
-	
+
 }
 
 /*
@@ -4085,9 +4122,9 @@ void copyTmpToFile(string filename, EquivalenceClassFamily * ECF)
 {
 	string line;
 	ifstream ECFfileName ((ECF -> getTmpFile()).c_str());
-	
+
 	ofstream AdjTreeFile((filename).c_str(),ofstream::out | ofstream::app );
-	
+
 	if(ECFfileName.is_open() && AdjTreeFile.is_open())
 	{
 		while ( getline (ECFfileName,line) )
@@ -4099,13 +4136,13 @@ void copyTmpToFile(string filename, EquivalenceClassFamily * ECF)
 	}else{
 		cerr << "Temporary file: " << ECF -> getTmpFile() << " could not be opened." << endl;
 	}
-	
+
 	int status = remove((ECF -> getTmpFile()).c_str());//deleting the tmp file.
 	if(status == -1){
 		cout << "File removal of " << ECF -> getTmpFile() << " did not work. You might have to proceed manually."<<endl;
-		
+
 	}
-	
+
 }
 
 
@@ -4133,7 +4170,7 @@ pair < int, int> FindGroupLoss(int OrNode, int OrFam, int spe_loss, int father_s
 {
 	pair <int, int> result;
 	bool done = false;
-	
+
 	string currNodeName = boost::lexical_cast<std::string>(Fam) + "|" + boost::lexical_cast<std::string>(Node);
 	string oldNodeName = boost::lexical_cast<std::string>(OrFam) + "|" + boost::lexical_cast<std::string>(OrNode);
 	string newNodeName;
@@ -4166,16 +4203,16 @@ pair < int, int> FindGroupLoss(int OrNode, int OrFam, int spe_loss, int father_s
 					newNodeName = AdjGraph[father_spe][currNodeName][i].first;
 					string segment;
 					vector <string> seglist;
-					
+
 					stringstream nodename(newNodeName);
-					
+
 					while(getline(nodename, segment, '|'))
 					{
 					   seglist.push_back(segment);
 					}
 					newFam = atoi(seglist[0].c_str());
 					int newNode = atoi(seglist[1].c_str());
-					
+
 					ReconciledTree * newRecTree = GeneFamilyList->at(newFam)->getRecTree();
 					vector <int> newSons = newRecTree -> getSonsId(newNode);
 
@@ -4202,11 +4239,11 @@ pair < int, int> FindGroupLoss(int OrNode, int OrFam, int spe_loss, int father_s
 					}
 					//up to this point, nothing has been found. Set variables for the next neighbor.
 					oldNodeName = currNodeName;
-					currNodeName = newNodeName;	
+					currNodeName = newNodeName;
 					break;//no need to iter further, as there are only two neighbors.
 				}
 			}
-			
+
 		}
 		else
 		{//if there's more than 2 neighbors, we can't decide so there's no candidates.
@@ -4214,9 +4251,9 @@ pair < int, int> FindGroupLoss(int OrNode, int OrFam, int spe_loss, int father_s
 			result.first = -1;
 			result.second = -1;
 		}
-		
+
 	}
-	
+
 	return result;
 }
 
@@ -4228,12 +4265,12 @@ Returns:
 	- bool : if the adjacency is already present or not in the object.
 */
 bool doesItExist( pair < vector < pair <string, string> >, bool > FamFreeAdjacencies,
-					pair < string, string > potentialFreeAdjacency) 
+					pair < string, string > potentialFreeAdjacency)
 {
 	for(unsigned i = 0; i < FamFreeAdjacencies.first.size() ; i++){
 		//cout << FamFreeAdjacencies.first[i].first << " and " << potentialFreeAdjacency.first <<endl;
 		//cout << FamFreeAdjacencies.first[i].second << " and " << potentialFreeAdjacency.second <<endl;
-		
+
 		if(FamFreeAdjacencies.first[i].first == potentialFreeAdjacency.first && FamFreeAdjacencies.first[i].second == potentialFreeAdjacency.second)
 			return true;
 		else if(FamFreeAdjacencies.first[i].first == potentialFreeAdjacency.second && FamFreeAdjacencies.first[i].second == potentialFreeAdjacency.first)
