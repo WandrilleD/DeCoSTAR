@@ -765,6 +765,7 @@ int main(int args, char ** argv)
                                             gDoubleParams.find("dupli.cost")->second , gDoubleParams.find("HGT.cost")->second, gDoubleParams.find("loss.cost")->second , // costs
                                             maxTS, gWeight, gBoolParams.find("dated.species.tree")->second, //here, dated.species.tree means that species tree is subdivided
                                             gBoolParams.find("try.all.amalgamation")->second,false, gBoolParams.find("rooted")->second);
+
             }
             else
                 Gfamily->setRecScore(gDoubleParams.find("dupli.cost")->second , gDoubleParams.find("HGT.cost")->second, gDoubleParams.find("loss.cost")->second );

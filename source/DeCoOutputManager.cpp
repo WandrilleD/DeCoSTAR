@@ -100,7 +100,7 @@ void DeCoOutputManager::WritePhyloXMLRecEvent(ofstream& OUT, ReconciledTree * Rt
 	}
 	else if(Rtree->isSout(event))
 	{
-		eventString	= "speciationOut";
+		eventString	= "branchingOut";
 	}
 	else if(Rtree->isRec(event))
 	{
@@ -302,7 +302,7 @@ void DeCoOutputManager::WritePhyloXMLAdjEvent(ofstream& OUT, AdjTree * Atree, in
 	}
 	else if(Atree->isSout(event))
 	{
-		eventString	= "speciationOut";
+		eventString	= "branchingOut";
 	}
 	else if(Atree->isRec(event))
 	{
@@ -628,7 +628,7 @@ void DeCoOutputManager::WriteCoEvent(ofstream& OUT, CoEvent coevent)
 	else if(evt == 3)
 		evtstring = "duplication";
 	else if(evt == 4)
-		evtstring = "speciationOut";
+		evtstring = "branchingOut";
 	else if(evt == 5)
 		evtstring = "transferBack";
 	else if(evt == 7)

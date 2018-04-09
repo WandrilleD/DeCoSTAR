@@ -461,10 +461,10 @@ vector<MyGeneTree*> MyGeneTree::readMyGeneTrees(
             errString += str.str();
             return trees;
         }
-        if(tree->getNumberOfLeaves()>=2)
+        //if(tree->getNumberOfLeaves()>=2)
             trees.push_back( tree );
-        else    
-            cout << "Gene tree number " << lineNumber << " has only one leaf,  skipped\n";
+        //else    
+        //    cout << "Gene tree number " << lineNumber << " has only one leaf,  skipped\n";
     }
 
             

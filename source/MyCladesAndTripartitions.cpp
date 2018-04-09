@@ -402,9 +402,12 @@ Returns a tree where bipartitions have been drawn at random according to their s
 **/
 MyGeneTree * MyCladesAndTripartitions::getRandomTree()
 {
-    	int pOrd = 0;
-    	MyGeneNode *node = getRandomTreeAux( pOrd, mClades.getRootClade() );
-    	return new MyGeneTree( *node );
+ 	if( mClades.getLeafCount() < 3 )
+ 		return getMaxTree(); 
+
+    int pOrd = 0;
+    MyGeneNode *node = getRandomTreeAux( pOrd, mClades.getRootClade() );
+    return new MyGeneTree( *node );
 }
 
 /**
@@ -415,7 +418,15 @@ MyGeneTree * MyCladesAndTripartitions::getMaxTree()
 	int pOrd = 0;
 	MyGeneNode *node;
 
-	if(mClades.getLeafCount() == 2)
+	//special procedures when there is only 1 or 2 leaves in the tree.
+	if(mClades.getLeafCount() == 1)
+	{
+		//cout << " clade count " << mClades.getCladeCount() << endl;
+		//printMe();
+	    node = new MyGeneNode();
+	    node->setName( mClades.getLeafName( 1 ) );
+	}
+	else if(mClades.getLeafCount() == 2)
 	{
 	    node = new MyGeneNode();
     

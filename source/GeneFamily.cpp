@@ -157,6 +157,24 @@ void GeneFamily::drawReconciliation(MySpeciesTree * speciesTree, bool random, in
 
 	
 
+	if( CCPDistrib->mClades.getLeafCount() == 1 )
+	{
+
+		ReconciledTree RT;  //RecTree();
+
+		int idX = speciesTree->getNode( CCPDistrib->mClades.getSpeciesName(1) )->getId() ;
+		idX =  speciesTree->getRPO(idX);
+		RT.makeSingleLeafTree( CCPDistrib->mClades.getLeafName( 1 ) , idX );
+
+		if(dated == 0)//if the sp tree is not subdivided, then the tree shouldn't
+			RT.setToNonTimeSliced();
+
+		setReconciliation(RT);
+
+		ReconciliationSet = true;
+		return;
+	}
+
     //if(VERBOSE)
     //{
     //    end = clock();
@@ -615,6 +633,7 @@ void GeneFamily::makeUnrootedTree(bool random)
 	else
 		newTree = CCPDistrib->getMaxTree();
 
+	//newTree->printNewick( "test.nwk" , true);
 
 	UnrootedTree = *newTree;
 
@@ -725,11 +744,23 @@ void GeneFamily::makeReconciliation(MySpeciesTree * speciesTree, bool computeT, 
 		//if the unrooted tree is set, don't try all amalgamation
 		tryAllAmalgamation = false;
 	}
-	if((tryAllAmalgamation)&&( CCPDistrib->mClades.getLeafCount() == 2))
+	if((tryAllAmalgamation)&&( CCPDistrib->mClades.getLeafCount() <= 2))
 	{
 		tryAllAmalgamation=false;
 		makeUnrootedTree(false);
+
 	}
+
+	if( CCPDistrib->mClades.getLeafCount() == 1 )
+	{ // special procedure when there is only 1 leaf.
+		setRecScore(0);
+		int dated =0;
+		if(SubdividedSpTree)
+			dated = 2;
+		drawReconciliation( speciesTree,random , dated );
+		//RecTree.printMe();
+		return;
+	} 
 
 	//setting up some basic arguments
 	if(!computeT)

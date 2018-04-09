@@ -430,7 +430,7 @@ ReconciliationEvent::ReconciliationEvent(string XMLline)
 		setidXr(-2); // -2 means that we will have to ask later...
 		setidXl(-2); // -2 means that we will have to ask later...
 	}
-	else if(name.compare("speciationOut") == 0)
+	else if( (name.compare("branchingOut") == 0) || (name.compare("speciationOut") == 0))
 	{
 		evtName = "TTD";
 		setidX(tmpIdX);
@@ -458,7 +458,7 @@ ReconciliationEvent::ReconciliationEvent(string XMLline)
 		setidXr(tmpIdX);
 		setidXl(-1);
 	}
-	else if(name.compare("speciationOutLoss") == 0)
+	else if( (name.compare("branchingOutLoss") == 0) || (name.compare("speciationOutLoss") == 0))
 	{
 		evtName = "TLTD";
 		setidX(tmpIdX);

@@ -450,6 +450,10 @@ Abreak  --> adjacency breakage
 	{
 		evtCode = Sout;
 	}
+	else if(Tname.compare("branchingOut") == 0)
+	{
+		evtCode = Sout;
+	}
 	else if(Tname.compare("bifurcationOut") == 0)
 	{
 		evtCode = Bout;

@@ -213,7 +213,7 @@ protected:
 	string NodeString(int nodeid, bool hideLosses = false);
 
 public:
-	ReconciledTree(): TreeTemplate<Node>()
+	ReconciledTree(): TreeTemplate<Node>(), nbNodes(0)
 	{} // empty tree
 
 	ReconciledTree(Node * root, int TSstatus);
@@ -321,6 +321,8 @@ public:
 	map <int, vector <string> > cladeToLeafListAssociation();
 
 	vector <int> getLeafOrSpeciationDescendants(int nodeId);
+
+	void makeSingleLeafTree( string name, int speciesId );
 
 };
 //the post order attribute is not really used. Why not discard it?

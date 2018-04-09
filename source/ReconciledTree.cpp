@@ -789,7 +789,7 @@ Bout 	-->	Bifurcation in an extinct/unsampled lineage (otherwise called Bifurcat
 	{
 		evtCode = S;
 	}
-	else if(Tname.compare("speciationOut") == 0)
+	else if( (Tname.compare("branchingOut") == 0) || (Tname.compare("speciationOut") == 0))
 	{
 		evtCode = Sout;
 	}
@@ -810,8 +810,7 @@ Bout 	-->	Bifurcation in an extinct/unsampled lineage (otherwise called Bifurcat
 	{
 		evtCode = R;
 	}
-
-	else if(Tname.compare("speciationOutLoss") == 0)
+	else if( (Tname.compare("branchingOutLoss") == 0) || (Tname.compare("speciationOutLoss") == 0))
 	{
 		evtCode = Sout;
 		//create some Loss son in the same species, with the same time slice
@@ -2674,4 +2673,28 @@ vector <int> ReconciledTree::getLeafOrSpeciationDescendants(int nodeId)
 		}
 	}
 	return descendants;
+}
+
+/*
+	Takes:
+		- string name : name of the single leaf
+		- int speciesId : species id of the single leaf
+*/
+void ReconciledTree::makeSingleLeafTree( string name, int speciesId )
+{
+	assert( nbNodes == 0 );
+
+	Node * newnode  = new Node(0);
+	setRootNode(newnode);//setting as the new root
+	setNodeCladeNum(0, 0);//setting the new node cladenum property and updating the map
+
+	nbNodes++;
+
+	//setting NodeId as a leaf
+	setNodeSpecies(newnode,speciesId);
+	newnode->setName(name);
+	setNodeEvent(newnode,C);
+	setNodeUpperBoundaryTS(newnode,0);//the time slice of a leaf is 0
+	setNodeLowerBoundaryTS(newnode,0);
+
 }
