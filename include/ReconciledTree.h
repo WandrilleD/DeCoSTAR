@@ -176,10 +176,10 @@ protected:
 		- Nodeid (int): a node id
 		- evtLine (string): recPhyloXML line describing a reconciliation event
 	*/
-	void setNodeDetailsFromXMLLine(int Nodeid, string evtLine, bool VERBOSE);
+	void setNodeDetailsFromXMLLine(int Nodeid, string evtLine, map< string , int > & speciesNameToNodeId  , bool VERBOSE);
 
 	//same as previous; uses the interpreted xml line instead
-	void setNodeDetailsFromXMLLine(int Nodeid, string Tname, map <string, string> * properties, string * value, bool VERBOSE);
+	void setNodeDetailsFromXMLLine(int Nodeid, string Tname, map <string, string> * properties, string * value, map< string , int > & speciesNameToNodeId  , bool VERBOSE);
 
 	/*
 	read and add a clade from a recPhyloXML stream
@@ -189,10 +189,10 @@ protected:
 		- VERBOSE (bool) (default = false)
 
 	*/
-	void addXMLClade(ifstream& fileIN, int Nodeid, bool VERBOSE = false); // will need a species tree
+	void addXMLClade(ifstream& fileIN, int Nodeid, map< string , int > & speciesNameToNodeId  , bool VERBOSE = false); // will need a species tree
 
 
-	void readPhyloXMLFile(ifstream& fileIN, MySpeciesTree * Stree, bool VERBOSE );
+	void readPhyloXMLFile(ifstream& fileIN, MySpeciesTree * Stree, map< string , int > & speciesNameToNodeId , bool VERBOSE );
 
 	void removeNoEventNodes();
 
@@ -225,10 +225,10 @@ public:
 
 
 	//Constructor that uses a stream from a recPhyloXML file
-	ReconciledTree(ifstream& fileIN, MySpeciesTree * Stree, bool VERBOSE = false);
+	ReconciledTree(ifstream& fileIN, MySpeciesTree * Stree, map< string , int > & speciesNameToNodeId , bool VERBOSE = false);
 
 	//Constructor that uses a recPhyloXML file name
-	ReconciledTree(string phyloxmlFileName, MySpeciesTree * Stree, bool VERBOSE = false);
+	ReconciledTree(string phyloxmlFileName, MySpeciesTree * Stree , map< string , int > & speciesNameToNodeId, bool VERBOSE = false);
 
 
 	~ReconciledTree()

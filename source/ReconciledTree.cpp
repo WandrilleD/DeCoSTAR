@@ -39,7 +39,7 @@ This file contains a class for reconciled trees
 Created the: 26-10-2015
 by: Wandrille Duchemin
 
-Last modified the: 08-09-2016
+Last modified the: 16-03-2020
 by: Wandrille Duchemin
 
 */
@@ -116,6 +116,9 @@ MyGeneNode * ReconciledTree::getMyGeneTreeTopologyAux(Node * currentNode)
     MyGeneNode *node;
 
     vector<Node *> Sons = currentNode->getSons();
+    int evt = dynamic_cast<BppInteger *> ( currentNode->getNodeProperty(ev) )->getValue()  ; 
+    //cout << "ReconciledTree::getMyGeneTreeTopologyAux " << Sons.size() << ' ' << evt << endl;
+
 
     if(Sons.size() == 0) // no sons -> loss or leaf
     {
@@ -724,14 +727,14 @@ Takes:
 	- Nodeid (int): a node id
 	- evtLine (string): recPhyloXML line describing a reconciliation event
 */
-void ReconciledTree::setNodeDetailsFromXMLLine(int Nodeid, string evtLine, bool VERBOSE)
+void ReconciledTree::setNodeDetailsFromXMLLine(int Nodeid, string evtLine , map< string , int > & speciesNameToNodeId  , bool VERBOSE)
 {
 
 	map <string, string> * properties = new map <string,string>;
 	string * value = new string(""); 
 	string Tname = InterpretLineXML(evtLine,properties,value);
 
-	setNodeDetailsFromXMLLine( Nodeid,  Tname,  properties,  value, VERBOSE);
+	setNodeDetailsFromXMLLine( Nodeid,  Tname,  properties, value , speciesNameToNodeId  , VERBOSE);
 }
 
 
@@ -743,7 +746,7 @@ Takes:
 	- value ( string * ): should be empty, technically not used here
 
 */
-void ReconciledTree::setNodeDetailsFromXMLLine(int Nodeid, string Tname, map <string, string> * properties, string * value, bool VERBOSE)
+void ReconciledTree::setNodeDetailsFromXMLLine(int Nodeid, string Tname, map <string, string> * properties, string * value,map< string , int > & speciesNameToNodeId  , bool VERBOSE)
 {
 	char * pEnd; // for str -> int conversion 
 	
@@ -757,7 +760,17 @@ void ReconciledTree::setNodeDetailsFromXMLLine(int Nodeid, string Tname, map <st
 			setNodeLowerBoundaryTS(Nodeid,TS);
 		}
 		else if (it->first.compare("speciesLocation") == 0)
-			setNodeSpecies(Nodeid, (int) strtol(it->second.c_str(), &pEnd, 10) );
+		{
+			string species = it->second.c_str() ;
+			auto speciesIt  = speciesNameToNodeId.find(species) ;
+			if( speciesIt == speciesNameToNodeId.end() )
+			{
+				// species not found ...
+				throw Exception("ReconciledTree::setNodeDetailsFromXMLLine : unknown species : " + species );
+			}
+			setNodeSpecies(Nodeid , speciesIt->second);
+
+		}
 		else if (it->first.compare("destinationSpecies") == 0)
 			setNodeSpecies(Nodeid, (int) strtol(it->second.c_str(), &pEnd, 10) );
 		else if (it->first.compare("geneName") == 0)
@@ -835,6 +848,11 @@ Bout 	-->	Bifurcation in an extinct/unsampled lineage (otherwise called Bifurcat
 		// This won't get forgotten as these are speciations nodes with only one son
 
 	}
+	else if(Tname.compare("loss") == 0)
+	{
+		evtCode = L;
+
+	}
 
 	if(evtCode == -1)
 		throw Exception("ReconciledTree::setNodeDetailsFromXMLLine : unknown event : " + Tname );
@@ -863,13 +881,14 @@ Takes:
 	- Nodeid (int) : node to put the clade IN
 	- VERBOSE (bool) (default = false)
 */
-void ReconciledTree::addXMLClade(ifstream& fileIN,int Nodeid, bool VERBOSE) // will need a species tree
+void ReconciledTree::addXMLClade(ifstream& fileIN,int Nodeid, map< string , int > & speciesNameToNodeId ,  bool VERBOSE) // will need a species tree
 {
 
 	int Cnum = CladeIdToNodeIds.size(); //the clade num will be some equivalent to a BFO index
 
 	setNodeCladeNum(Nodeid , Cnum);
-
+	//cout << "before "<< Cnum << "- after " << CladeIdToNodeIds.size() << endl;
+	//cout << nbNodes << endl; 
 	if(VERBOSE)
 		cout << "parsing clade " << Cnum << " id " << Nodeid<< endl;
 
@@ -923,6 +942,7 @@ void ReconciledTree::addXMLClade(ifstream& fileIN,int Nodeid, bool VERBOSE) // w
 		}
 		else if(Tname.compare("clade") == 0) // found a child --> recursion
 		{
+			
 			//create child clade
 
 			//creating the new node
@@ -935,7 +955,7 @@ void ReconciledTree::addXMLClade(ifstream& fileIN,int Nodeid, bool VERBOSE) // w
 			currentNode->addSon(newNode);
 
 			//recursing
-			addXMLClade(fileIN, newId,  VERBOSE );
+			addXMLClade(fileIN, newId, speciesNameToNodeId , VERBOSE );
 
 
 		}
@@ -994,12 +1014,12 @@ void ReconciledTree::addXMLClade(ifstream& fileIN,int Nodeid, bool VERBOSE) // w
 			//new putting correct attributes to in the new node
 			setNodeCladeNum(newId , Cnum);
 
-			setNodeDetailsFromXMLLine(newId,evtLines[i], VERBOSE);
+			setNodeDetailsFromXMLLine(newId,evtLines[i] , speciesNameToNodeId  , VERBOSE);
 
 		}
 	}
 
-	setNodeDetailsFromXMLLine(Nodeid,evtLines.back(), VERBOSE); // setting details on the last node == the bifurcation or leaf
+	setNodeDetailsFromXMLLine(Nodeid,evtLines.back() , speciesNameToNodeId , VERBOSE); // setting details on the last node == the bifurcation or leaf
 
 
 }
@@ -1009,9 +1029,10 @@ Constructor that uses a stream from a recPhyloXML file
 Takes
  - fileIN (ifstream): stream rom a recPhyloXML file
  - Stree (MySpeciesTree *): a pointer to the species tree
+ - map< string , int > & speciesNameToNodeId
  - VERBOSE (bool) [fdefault : false]
 */
-void ReconciledTree::readPhyloXMLFile(ifstream& fileIN, MySpeciesTree * Stree, bool VERBOSE )
+void ReconciledTree::readPhyloXMLFile(ifstream& fileIN, MySpeciesTree * Stree, map< string , int > & speciesNameToNodeId , bool VERBOSE )
 {
 	// presuming that the stream will yield a <clade> line forming the root of the tree
 	//first find the root
@@ -1024,9 +1045,10 @@ void ReconciledTree::readPhyloXMLFile(ifstream& fileIN, MySpeciesTree * Stree, b
 
 	setRootNode(newnode);//setting as the new root
 
+	nbNodes++;
 
-	addXMLClade( fileIN,rootid,  VERBOSE ); 
-
+	addXMLClade( fileIN,rootid, speciesNameToNodeId, VERBOSE ); 
+	
 	///post-treatment requiring species tree
 	vector <int> NodesIds  = getNodesId();
 
@@ -1376,16 +1398,24 @@ Constructor that uses a stream from a recPhyloXML file
 Takes
  - fileIN (ifstream): stream rom a recPhyloXML file
  - Stree (MySpeciesTree *): a pointer to the species tree
+ - map< string , int > & speciesNameToNodeId : associates the name of species to their node Id
  - VERBOSE (bool) [fdefault : false]
 */
-ReconciledTree::ReconciledTree(ifstream& fileIN, MySpeciesTree * Stree, bool VERBOSE): TreeTemplate<Node>()
+ReconciledTree::ReconciledTree(ifstream& fileIN, MySpeciesTree * Stree, map< string , int > & speciesNameToNodeId, bool VERBOSE): TreeTemplate<Node>()
 {
 
-	readPhyloXMLFile( fileIN, Stree, VERBOSE );
+	readPhyloXMLFile( fileIN, Stree, speciesNameToNodeId , VERBOSE );
 }
 
-//Constructor that uses a recPhyloXML file name
-ReconciledTree::ReconciledTree(string phyloxmlFileName, MySpeciesTree * Stree, bool VERBOSE )
+/** 
+Constructor that uses a recPhyloXML file name
+Takes
+ - fileIN (ifstream): stream rom a recPhyloXML file
+ - Stree (MySpeciesTree *): a pointer to the species tree
+ - map< string , int > & speciesNameToNodeId : associates the name of species to their node Id
+ - VERBOSE (bool) [fdefault : false]
+*/
+ReconciledTree::ReconciledTree(string phyloxmlFileName, MySpeciesTree * Stree , map< string , int > & speciesNameToNodeId , bool VERBOSE )
 {
 	ifstream fileStream(phyloxmlFileName.c_str());
 	if( !fileStream.is_open() ) 
@@ -1407,7 +1437,7 @@ ReconciledTree::ReconciledTree(string phyloxmlFileName, MySpeciesTree * Stree, b
 
 		if(Tname.compare("clade") == 0)
 		{
-			readPhyloXMLFile(fileStream,Stree, VERBOSE);
+			readPhyloXMLFile(fileStream,Stree, speciesNameToNodeId ,  VERBOSE);
 			break;
 		}
 
@@ -1452,6 +1482,7 @@ Takes:
 */
 void ReconciledTree::addNodeIdToCladeIdMap(int CladeId, int NodeId)
 {
+	//cout << "ReconciledTree::addNodeIdToCladeIdMap " << CladeId << "," << NodeId << endl;
 	if(CladeIdToNodeIds.count(CladeId) == 0)//key is absent from the map -> add it
 		CladeIdToNodeIds[CladeId] = vector<int>();
 	CladeIdToNodeIds[CladeId].push_back(NodeId);

@@ -80,7 +80,7 @@ by: Wandrille Duchemin
 
 int countConnexComponents(vector< vector<int> > *adjacencyVector);
 
-void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileName , MySpeciesTree * Stree, bool verbose, bool superverbose);
+void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileName , MySpeciesTree * Stree, map< string , int > & speciesNameToNodeId,  bool verbose, bool superverbose);
 
 void AddToFile(string filename, string line);
 
@@ -188,7 +188,8 @@ int processSpeciesTree( MySpeciesTree *speciesTree , bool dateAsBootstrap, bool 
 void checkGeneTree( int counter, MyGeneTree *geneTree);
 
 vector<string> readGeneDistributionsFile(string ListGeneFile);
-void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree *speciesTree ,vector<string> geneFiles, bool ale, bool reconciled, char charSep ,bool verbose, bool superverbose, bool rooted=false);
+void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree *speciesTree ,vector<string> geneFiles, map< string , int > & speciesNameToNodeId, 
+                                    bool ale, bool reconciled, char charSep ,bool verbose, bool superverbose, bool rooted=false);
 
 
 vector< pair <string,string > > readAdjacencies(string AdjacencyFile);
@@ -288,5 +289,6 @@ void copyTmpToFile(string filename, EquivalenceClassFamily * ECF);
 
 bool doesItExist( pair < vector < pair <string, string> >, bool > FamFreeAdjacencies, pair < string, string > potentialFreeAdjacency);
 
+bool getNameToNodeIdMap( MySpeciesTree *speciesTree , map< string , int > & nameToNodeId ,bool verbose );
 
 #endif

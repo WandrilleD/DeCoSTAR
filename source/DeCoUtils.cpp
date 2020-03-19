@@ -118,10 +118,15 @@ read the reconcilied tree in a recphyloXML file and create a GeneFamily for each
 Takes:
 	- GeneFamilyList (vector <GeneFamily *> ) : gene families 
 	- string fileName : name of the file
-
+	- MySpeciesTree * Stree, 
+	- map< string , int > & speciesNameToNodeId , 
+	- bool verbose, 
+	- bool superverbose
 */
-void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileName , MySpeciesTree * Stree, bool verbose, bool superverbose)
+void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileName , MySpeciesTree * Stree, map< string , int > & speciesNameToNodeId , bool verbose, bool superverbose)
 {
+	int sizeBefore = GeneFamilyList->size();
+
 	ifstream fileStream(fileName.c_str());
 	if( !fileStream.is_open() ) 
 	{
@@ -136,8 +141,10 @@ void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileNa
 	{
 		if( goToNextTag(fileStream,startTag) ) // go to clade -> the root of the reconciled gene tree
 		{
-			ReconciledTree Rtree(fileStream, Stree, superverbose);
+			ReconciledTree Rtree(fileStream, Stree , speciesNameToNodeId, superverbose);
+			
 			GeneFamilyList->push_back(new GeneFamily(Rtree, verbose, superverbose));
+			
 		}
 		else
 		{ // no clade ? pb but ignore...
@@ -145,7 +152,10 @@ void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileNa
 				cout << "found a "<< RecGeneTreeTag << " without any " << startTag << " in the file " << fileName << " -> ignoring that tree."<< endl;
 		}
 	}
-
+	if( sizeBefore == GeneFamilyList->size() )
+	{
+		throw Exception("ReadRecPhyLoXMLFile : no recPhyloXML tree in : " + fileName);
+	}
 }
 
 
@@ -2219,6 +2229,25 @@ MySpeciesTree * getSpeciesTree(string speciesFile, bool dateAsBootstrap)
 }
 
 
+/**
+ * @arg MySpeciesTree * speciesTree : the species tree
+ * @arg map< string , int >  nameToNodeId : 
+ * @arg bool verbose
+ *
+ * 
+ * @return 1 if the number of names matches the number of nodes. 0 otherwise
+*/
+bool getNameToNodeIdMap( MySpeciesTree *speciesTree , map< string , int > & nameToNodeId ,bool verbose )
+{
+	int nbNodes = 0;
+    vector<MySpeciesNode*> nodes = speciesTree->getNodes();
+    BOOST_FOREACH( MySpeciesNode* node, nodes ) {
+    	nameToNodeId[ node->getName() ] = speciesTree->getRPO(node->getId());
+    	//cout << node->getName() << " - " << speciesTree->getRPO(node->getId()) << endl;
+    	nbNodes++;
+    }
+    return nameToNodeId.size() == nbNodes; 
+}
 
 /** 
  * Process species tree: trimming, costs, subdivision, date changes
@@ -2467,6 +2496,7 @@ vector<string> readGeneDistributionsFile(string ListGeneFile)
 * @arg vector <GeneFamily *> * GeneFamilyList : vector of GeneFamily where gene distribution will be added
 * @arg MySpeciesTree *speciesTree 
 * @arg vector<string> geneFiles : vector of gene distribution filenames
+* @arg map< string , int > & speciesNameToNodeId : used when the genes are reconciled -> link species name to species node id
 * @arg bool ale : true if the files are actually in the .ale format
 * @arg bool reconciled : true if the files actually contains a reconciled tree in PhyloXML format (negated by ale)
 * @arg char charSep : separator between species id and gene id
@@ -2474,7 +2504,8 @@ vector<string> readGeneDistributionsFile(string ListGeneFile)
 * @arg bool superverbose
 * @arg bool rooted (default = false)
 */
-void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree *speciesTree ,vector<string> geneFiles, bool ale, bool reconciled, char charSep ,bool verbose, bool superverbose, bool rooted)
+void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree *speciesTree ,vector<string> geneFiles, map< string , int > & speciesNameToNodeId, 
+							bool ale, bool reconciled, char charSep ,bool verbose, bool superverbose, bool rooted)
 {
 	//reading the gene trees and putting them in GeneFamilies
 	bool overflow = false;
@@ -2526,7 +2557,7 @@ void readGeneDistributions(vector <GeneFamily *> * GeneFamilyList, MySpeciesTree
 				
 				//int previousS = GeneFamilyList->size();
 
-				ReadRecPhyLoXMLFile(   GeneFamilyList,  geneFile , speciesTree,  verbose, superverbose); 
+				ReadRecPhyLoXMLFile(   GeneFamilyList,  geneFile , speciesTree, speciesNameToNodeId,  verbose, superverbose); 
 
 				//if(verbose)
 				//{

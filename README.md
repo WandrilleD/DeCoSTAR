@@ -17,7 +17,13 @@ Installation
 ============
 
 DeCoSTAR requires:
- * Bio++ ( http://biopp.univ-montp2.fr/) (installation instructions : http://biopp.univ-montp2.fr/wiki/index.php/Installation )
+ * Bio++ ( http://biopp.univ-montp2.fr/) 
+ 	* installation instructions : http://biopp.univ-montp2.fr/wiki/index.php/Installation#Getting_the_source_files
+ 	* the current version has been succesfully build using the following commits:
+		* bpp-core : df2daf3b70ebd74d1b4d9c318d8db938228a349a
+		* bpp-phyl : 630247204cc7c0d85cf2cb90af3a1a5feb0dac86
+		* bpp-seq  : 631d58e919286bfb40d05bc63c201b31405f6d35
+
  * boost (http://www.boost.org/)
 
 

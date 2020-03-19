@@ -587,17 +587,19 @@ GeneFamily::GeneFamily(ReconciledTree RTree, bool verbose, bool superverbose)
 	DTLMatSet = false;
 
 
-
 	VERBOSE = verbose;
 	SUPERVERBOSE = superverbose;
 
 	//here, plenty of pre-processing and checks might come
-
+	
 	RecTree = RTree;
 
 	leafNames = RecTree.getRealLeavesNames();//ok
 
 	MyGeneTree UnrootedgeneTree = RTree.getMyGeneTreeTopology();
+
+	//RTree.printMe();
+
 
 	setUnrootedTree( UnrootedgeneTree); // setting the new topology (also computes Lkh)
 

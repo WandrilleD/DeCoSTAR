@@ -4,8 +4,8 @@ BDIR=bin
 SDIR=source
 IDIR=include
 
-BPP_INCLUDE=$(HOME)/local/bpp/dev/include
-BPP_LIB=$(HOME)/local/bpp/dev/lib
+BPP_INCLUDE=/include
+BPP_LIB=/lib
 
 BOOST_INCLUDE=/usr/include
 BOOST_LIB=/usr/lib

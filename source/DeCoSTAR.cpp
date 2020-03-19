@@ -597,6 +597,8 @@ int main(int args, char ** argv)
         //if( gBoolParams.find("verbose")->second ) 
         //    bpp::ApplicationTools::startTimer();
 
+
+
         clock_t begin;
         clock_t end;
         double elapsed_secs;
@@ -619,14 +621,31 @@ int main(int args, char ** argv)
         MySpeciesTree * speciesTree = getSpeciesTree(gStringParams.find("species.file")->second, dateAsBootstrap);
         int maxTS = processSpeciesTree( speciesTree ,  dateAsBootstrap, gBoolParams.find("dated.species.tree")->second , gBoolParams.find("with.transfer")->second, gBoolParams.find("with.transfer")->second , gDoubleParams.find("HGT.cost")->second, gDoubleParams.find("loss.cost")->second, verbose );
 
+        //map< string , int > * nameToNodeId = new map< string , int > ();
+        map< string , int > speciesNameToNodeId = map< string , int >();
+        if( gBoolParams.find("already.reconciled")->second )
+        {
+            bool nbMatching = getNameToNodeIdMap( speciesTree , speciesNameToNodeId , verbose );
+            if( not nbMatching )
+            {
+                cerr << "Reconciled tree input :" << endl;
+                cerr << "The number of unique names in the species tree does not match the number of nodes in the species tree." << endl;
+                cerr << "Ensure that each node in the species tree has a unique name (as bootstrap)!" << endl;
+                exit(1);
+            }
 
-
+        }
 
         vector<string> geneFiles = readGeneDistributionsFile( gStringParams.find("gene.distribution.file")->second );
         
         vector <GeneFamily *> * GeneFamilyList = new vector <GeneFamily *>;
 
-        readGeneDistributions( GeneFamilyList, speciesTree , geneFiles, gBoolParams.find("ale")->second ,  gBoolParams.find("already.reconciled")->second, gStringParams.find("char.sep")->second[0] ,verbose, superverbose , gBoolParams.find("rooted")->second );
+        readGeneDistributions( GeneFamilyList, speciesTree , geneFiles, speciesNameToNodeId,
+                                gBoolParams.find("ale")->second ,  
+                                gBoolParams.find("already.reconciled")->second, 
+                                gStringParams.find("char.sep")->second[0] ,
+                                verbose, superverbose , 
+                                gBoolParams.find("rooted")->second );
 
 
 
