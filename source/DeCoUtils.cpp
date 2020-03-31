@@ -142,8 +142,23 @@ void ReadRecPhyLoXMLFile(  vector <GeneFamily *> * GeneFamilyList, string fileNa
 		if( goToNextTag(fileStream,startTag) ) // go to clade -> the root of the reconciled gene tree
 		{
 			ReconciledTree Rtree(fileStream, Stree , speciesNameToNodeId, superverbose);
-			
-			GeneFamilyList->push_back(new GeneFamily(Rtree, verbose, superverbose));
+
+			// checking that tehre is at leaf 1 valid leaf in that tree. 
+			vector<int> leaves = Rtree.getLeavesId();
+			bool hasRealLeaf = false ;
+			for(int i=0 ; i< leaves.size() ; i++)
+			{
+				if( Rtree.isRealLeaf(leaves[i]) )
+				{
+					hasRealLeaf = true ;
+					break;
+				}
+			}
+
+			if( hasRealLeaf )		
+				GeneFamilyList->push_back(new GeneFamily(Rtree, verbose, superverbose));
+			else
+				cout << "Warning : "<< fileName << " contains a tree without any leaf -> ignoring that tree."<< endl;
 			
 		}
 		else
